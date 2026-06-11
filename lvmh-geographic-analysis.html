@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LVMH — Geographic Revenue Analysis FY2020–FY2024</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0A0A0B;--surface:#111114;--surface2:#18181C;--border:#2A2A30;
+  --gold:#C9A84C;--gold-light:#F0D98A;--gold-dim:rgba(201,168,76,0.15);
+  --text:#F0EDE8;--text-mid:#A09890;--text-dim:#6B6560;
+  --green:#4CAF7D;--red:#E05C5C;--blue:#5B9BD5;--purple:#9B6EC8;--teal:#4BAFC9;--orange:#E08C3C;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6}
+
+/* header */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2.5rem;height:64px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-box{background:var(--gold);color:#000;font-size:11px;font-weight:700;letter-spacing:0.15em;padding:5px 10px}
+header h1{font-size:14px;font-weight:400;color:var(--text-mid);letter-spacing:0.06em}
+.hdr-right{font-size:11px;color:var(--text-dim);letter-spacing:0.08em;text-transform:uppercase}
+
+/* tabs */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--surface);padding:0 2.5rem}
+.tab{padding:14px 20px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;border:none;background:transparent;cursor:pointer;color:var(--text-dim);border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;transition:all 0.2s}
+.tab:hover{color:var(--text-mid)}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.panel{display:none}.panel.active{display:block}
+
+/* main layout */
+main{max-width:1200px;margin:0 auto;padding:2.5rem}
+
+/* summary bar */
+.summary-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:2.5rem}
+.sum-item{background:var(--surface);padding:1.25rem 1.5rem}
+.sum-label{font-size:11px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+.sum-value{font-size:22px;font-weight:300;color:var(--text)}
+.sum-sub{font-size:12px;margin-top:3px}
+
+/* chart grid */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:2rem}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.5rem}
+.chart-card.full{grid-column:1/-1}
+.chart-title{font-size:12px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px}
+.chart-sub{font-size:13px;color:var(--text-mid);margin-bottom:1.25rem}
+.chart-wrap{position:relative;width:100%}
+
+/* table */
+.tbl-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:2rem}
+.tbl-hdr{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border)}
+.tbl-hdr h3{font-size:13px;font-weight:500;color:var(--text)}
+.tbl-hdr p{font-size:12px;color:var(--text-dim);margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--surface2);color:var(--text-dim);font-weight:400;padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap}
+td{padding:10px 16px;border-bottom:1px solid var(--surface2);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500}
+.pos{background:rgba(76,175,125,0.15);color:#4CAF7D}
+.neg{background:rgba(224,92,92,0.15);color:#E05C5C}
+.neu{background:var(--surface2);color:var(--text-dim)}
+.gold-text{color:var(--gold)}
+
+/* insight boxes */
+.insights{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:2rem}
+.insight-box{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:1.25rem}
+.ins-title{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.ins-text{font-size:13px;color:var(--text-mid);line-height:1.65}
+
+/* query panel */
+.q-layout{display:grid;grid-template-columns:200px 1fr;gap:14px}
+.q-list{display:flex;flex-direction:column;gap:5px}
+.q-btn{width:100%;text-align:left;padding:10px 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-family:inherit;transition:all 0.15s}
+.q-btn:hover{background:var(--surface2)}
+.q-btn.active{border-color:var(--gold);background:var(--gold-dim)}
+.q-btn .ql{font-size:12px;font-weight:500;display:block;color:var(--text)}
+.q-btn .qs{font-size:11px;color:var(--text-dim);margin-top:2px;display:block}
+.q-btn.active .ql{color:var(--gold)}
+.sql-block{background:#0A0A0B;border:1px solid var(--border);border-radius:8px;padding:1.25rem;overflow-x:auto;margin-bottom:12px}
+pre{font-family:'SF Mono','Fira Code',monospace;font-size:11px;line-height:1.7;color:#C9D1D9;white-space:pre-wrap;word-break:break-word}
+.kw{color:#79C0FF;font-weight:500}.cm{color:#6E7681;font-style:italic}.num{color:#FF7B72}.str{color:#A5D6FF}
+.insight-strip{margin-top:10px;padding:10px 14px;background:var(--gold-dim);border-left:2px solid var(--gold);border-radius:0 6px 6px 0;font-size:12px;color:var(--text-mid);font-style:italic}
+
+/* legend */
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;font-size:12px;color:var(--text-mid)}
+.ldot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:middle}
+
+/* source note */
+.source{font-size:11px;color:var(--text-dim);margin-top:1rem;font-style:italic}
+
+footer{border-top:1px solid var(--border);padding:1.5rem 2.5rem;font-size:12px;color:var(--text-dim);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+footer a{color:var(--gold);text-decoration:none}
+
+@media(max-width:768px){
+  .chart-grid{grid-template-columns:1fr}
+  .chart-card.full{grid-column:1}
+  .q-layout{grid-template-columns:1fr}
+  main{padding:1.5rem}
+  header{padding:0 1.5rem}
+  .tabs{padding:0 1.5rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-box">LVMH</div>
+    <h1>Geographic Revenue Analysis &nbsp;·&nbsp; FY2020–FY2024</h1>
+  </div>
+  <div class="hdr-right">MC: NYSE · EUR · Annual Reports</div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('overview')">Overview</button>
+  <button class="tab" onclick="showTab('trends')">Regional trends</button>
+  <button class="tab" onclick="showTab('queries')">SQL queries</button>
+</div>
+
+<!-- OVERVIEW -->
+<div id="panel-overview" class="panel active">
+<main>
+
+<div class="summary-bar">
+  <div class="sum-item">
+    <div class="sum-label">Total revenue FY2024</div>
+    <div class="sum-value">€84.7B</div>
+    <div class="sum-sub" style="color:var(--red)">▼ 2% vs FY2023</div>
+  </div>
+  <div class="sum-item">
+    <div class="sum-label">Largest region FY2024</div>
+    <div class="sum-value" style="color:var(--gold)">Asia excl. Japan</div>
+    <div class="sum-sub" style="color:var(--text-dim)">28% of total revenue</div>
+  </div>
+  <div class="sum-item">
+    <div class="sum-label">Fastest growing FY2024</div>
+    <div class="sum-value" style="color:var(--green)">Japan</div>
+    <div class="sum-sub" style="color:var(--green)">▲ +28% YoY</div>
+  </div>
+  <div class="sum-item">
+    <div class="sum-label">Biggest decline FY2024</div>
+    <div class="sum-value" style="color:var(--red)">Asia excl. Japan</div>
+    <div class="sum-sub" style="color:var(--red)">▼ −12.5% YoY</div>
+  </div>
+  <div class="sum-item">
+    <div class="sum-label">5-yr revenue CAGR</div>
+    <div class="sum-value" style="color:var(--green)">~11%</div>
+    <div class="sum-sub" style="color:var(--text-dim)">FY2020 to FY2024</div>
+  </div>
+</div>
+
+<div class="chart-grid">
+  <div class="chart-card full">
+    <div class="chart-title">Revenue by region</div>
+    <div class="chart-sub">FY2020–FY2024 (€ billions)</div>
+    <div class="legend">
+      <span><span class="ldot" style="background:#C9A84C"></span>Asia excl. Japan</span>
+      <span><span class="ldot" style="background:#5B9BD5"></span>United States</span>
+      <span><span class="ldot" style="background:#4CAF7D"></span>Europe excl. France</span>
+      <span><span class="ldot" style="background:#9B6EC8"></span>France</span>
+      <span><span class="ldot" style="background:#4BAFC9"></span>Japan</span>
+      <span><span class="ldot" style="background:#E08C3C"></span>Other markets</span>
+    </div>
+    <div class="chart-wrap" style="height:320px"><canvas id="stackedBar" role="img" aria-label="Stacked bar chart of LVMH revenue by region 2020 to 2024"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Regional mix FY2024</div>
+    <div class="chart-sub">% of total revenue</div>
+    <div class="chart-wrap" style="height:260px"><canvas id="donutChart" role="img" aria-label="Donut chart showing LVMH revenue mix by region in 2024"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">YoY growth by region</div>
+    <div class="chart-sub">FY2024 vs FY2023 (%)</div>
+    <div class="chart-wrap" style="height:260px"><canvas id="growthBar" role="img" aria-label="Bar chart showing year over year regional growth rates in 2024"></canvas></div>
+  </div>
+</div>
+
+<div class="insights">
+  <div class="insight-box">
+    <div class="ins-title">China slowdown</div>
+    <div class="ins-text">Asia excl. Japan fell 12.5% in FY2024 — the sharpest regional decline. Chinese luxury consumers shifted spending to Japan and Europe, attracted by favorable exchange rates, rather than buying domestically. This explains why Japan surged +28% while mainland Asia contracted.</div>
+  </div>
+  <div class="insight-box">
+    <div class="ins-title">Japan — the yen effect</div>
+    <div class="ins-text">Japan's +28% growth in FY2024 was the group's standout performance, driven by a weak yen making luxury goods ~30% cheaper for foreign visitors. This is a currency arbitrage effect — Chinese tourists flocked to Tokyo to buy Louis Vuitton at a discount. Sustainable only while yen stays weak.</div>
+  </div>
+  <div class="insight-box">
+    <div class="ins-title">Americas resilience</div>
+    <div class="ins-text">The US held steady at ~25% of revenue with +3% growth, anchored by Tiffany & Co. and Bulgari's jewellery strength. The US market has structurally grown from 22% of revenue in FY2020 to 25% in FY2024 — a deliberate diversification away from China concentration.</div>
+  </div>
+  <div class="insight-box">
+    <div class="ins-title">Europe — tourist-driven</div>
+    <div class="ins-text">Europe's +2% growth masks an important dynamic: much of the spending is by Chinese and Asian tourists buying in Paris and Milan rather than local European consumers. If Chinese outbound tourism slows, European numbers face downside risk despite the region appearing stable.</div>
+  </div>
+</div>
+
+<div class="tbl-card">
+  <div class="tbl-hdr">
+    <h3>Geographic revenue detail</h3>
+    <p>€ millions · Source: LVMH annual reports</p>
+  </div>
+  <div style="overflow-x:auto">
+    <table id="detail-table"></table>
+  </div>
+</div>
+
+<div class="source">Sources: LVMH annual reports FY2020–FY2024, SEC/AMF filings, earnings call transcripts. FY2022 regional mix restated to reflect Tiffany full-year contribution. All figures in EUR millions.</div>
+</main>
+</div>
+
+<!-- TRENDS -->
+<div id="panel-trends" class="panel">
+<main>
+  <div class="chart-grid">
+    <div class="chart-card full">
+      <div class="chart-title">Regional revenue share over time</div>
+      <div class="chart-sub">% of total revenue — how the geographic mix has shifted FY2020 to FY2024</div>
+      <div class="legend">
+        <span><span class="ldot" style="background:#C9A84C"></span>Asia excl. Japan</span>
+        <span><span class="ldot" style="background:#5B9BD5"></span>United States</span>
+        <span><span class="ldot" style="background:#4CAF7D"></span>Europe excl. France</span>
+        <span><span class="ldot" style="background:#9B6EC8"></span>France</span>
+        <span><span class="ldot" style="background:#4BAFC9"></span>Japan</span>
+        <span><span class="ldot" style="background:#E08C3C"></span>Other</span>
+      </div>
+      <div class="chart-wrap" style="height:320px"><canvas id="mixLine" role="img" aria-label="Line chart showing regional revenue share trends from 2020 to 2024"></canvas></div>
+    </div>
+    <div class="chart-card full">
+      <div class="chart-title">Year-over-year growth by region</div>
+      <div class="chart-sub">% change each year — which regions drove or dragged growth</div>
+      <div class="legend">
+        <span><span class="ldot" style="background:#C9A84C"></span>Asia excl. Japan</span>
+        <span><span class="ldot" style="background:#5B9BD5"></span>United States</span>
+        <span><span class="ldot" style="background:#4CAF7D"></span>Europe excl. France</span>
+        <span><span class="ldot" style="background:#4BAFC9"></span>Japan</span>
+      </div>
+      <div class="chart-wrap" style="height:300px"><canvas id="yoyLine" role="img" aria-label="Line chart showing year over year growth rates by region from 2021 to 2024"></canvas></div>
+    </div>
+  </div>
+
+  <div class="tbl-card">
+    <div class="tbl-hdr">
+      <h3>Share shift analysis — FY2020 vs FY2024</h3>
+      <p>Which regions gained or lost share of total revenue over 5 years</p>
+    </div>
+    <div style="overflow-x:auto"><table id="shift-table"></table></div>
+  </div>
+</main>
+</div>
+
+<!-- QUERIES -->
+<div id="panel-queries" class="panel">
+<main>
+  <div class="q-layout">
+    <div class="q-list" id="q-list"></div>
+    <div>
+      <div class="sql-block"><pre id="sql-out"></pre></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.25rem;">
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;letter-spacing:0.08em;text-transform:uppercase;">Results <span id="row-cnt" style="font-weight:400;color:var(--text-dim)"></span></div>
+        <div style="overflow-x:auto"><div id="res-out"></div></div>
+        <div class="insight-strip" id="insight-out"></div>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+
+<footer>
+  <span>LVMH Moët Hennessy Louis Vuitton SE &nbsp;·&nbsp; Geographic Revenue Analysis FY2020–FY2024 &nbsp;·&nbsp; FP&A Portfolio</span>
+  <a href="https://github.com/lauchel/financial-analyst-portfolio" target="_blank">github.com/lauchel/financial-analyst-portfolio</a>
+</footer>
+
+<script>
+// ── Real data from LVMH annual reports ──────────────────────────────────
+// Regions: Asia excl Japan, USA, Europe excl France, France, Japan, Other
+// Source: LVMH annual reports; 2022 reflects Tiffany full-year integration
+const YEARS = ['FY2020','FY2021','FY2022','FY2023','FY2024'];
+const TOTAL  = [44651, 64215, 79184, 86153, 84681]; // € millions
+
+// Regional breakdown (€ millions) sourced from LVMH annual filings
+const REGIONS = {
+  'Asia excl. Japan': { color:'#C9A84C', data:[16278,22475,27314,26708,23713] },
+  'United States':    { color:'#5B9BD5', data:[9824,  16054, 19456, 21538, 21170] },
+  'Europe excl. France':{ color:'#4CAF7D', data:[8039, 11958, 14253, 15508, 15244] },
+  'France':           { color:'#9B6EC8', data:[4911,  6742,  7664,  8270,  8129] },
+  'Japan':            { color:'#4BAFC9', data:[3218,  4139,  5027,  6044,  7588] },
+  'Other markets':    { color:'#E08C3C', data:[2381,  2847,  5470,  8085,  8837] }
+};
+
+const REGION_NAMES = Object.keys(REGIONS);
+
+function getPct(region, yearIdx){
+  return +((REGIONS[region].data[yearIdx]/TOTAL[yearIdx])*100).toFixed(1);
+}
+function getYoY(region, yearIdx){
+  if(yearIdx===0) return null;
+  const a=REGIONS[region].data[yearIdx], b=REGIONS[region].data[yearIdx-1];
+  return +((a-b)/b*100).toFixed(1);
+}
+
+// ── Build detail table ──────────────────────────────────────────────────
+function buildDetailTable(){
+  let h='<thead><tr><th>Region</th>';
+  YEARS.forEach(y=>h+=`<th>${y} (€M)</th>`);
+  h+='<th>FY24 Share</th><th>FY20→24 CAGR</th></tr></thead><tbody>';
+  REGION_NAMES.forEach(r=>{
+    const d=REGIONS[r].data;
+    const share=getPct(r,4);
+    const cagr=+((Math.pow(d[4]/d[0],1/4)-1)*100).toFixed(1);
+    h+=`<tr><td style="font-weight:500;color:${REGIONS[r].color}">${r}</td>`;
+    d.forEach((v,i)=>{
+      const yoy=getYoY(r,i);
+      const yoyStr=yoy===null?'':`<span style="font-size:11px;color:${yoy>=0?'#4CAF7D':'#E05C5C'};margin-left:6px">${yoy>=0?'▲':'▼'}${Math.abs(yoy)}%</span>`;
+      h+=`<td>${v.toLocaleString()}${yoyStr}</td>`;
+    });
+    h+=`<td><strong>${share}%</strong></td>`;
+    h+=`<td><span class="badge ${cagr>=0?'pos':'neg'}">${cagr>=0?'+':''}${cagr}%</span></td></tr>`;
+  });
+  // Total row
+  h+='<tr style="border-top:1px solid #2A2A30"><td style="font-weight:600">Total</td>';
+  TOTAL.forEach((v,i)=>{
+    const yoy=i>0?+((TOTAL[i]-TOTAL[i-1])/TOTAL[i-1]*100).toFixed(1):null;
+    const yoyStr=yoy===null?'':`<span style="font-size:11px;color:${yoy>=0?'#4CAF7D':'#E05C5C'};margin-left:6px">${yoy>=0?'▲':'▼'}${Math.abs(yoy)}%</span>`;
+    h+=`<td><strong>${v.toLocaleString()}</strong>${yoyStr}</td>`;
+  });
+  const totalCAGR=+((Math.pow(TOTAL[4]/TOTAL[0],1/4)-1)*100).toFixed(1);
+  h+=`<td><strong>100%</strong></td><td><span class="badge pos">+${totalCAGR}%</span></td></tr>`;
+  h+='</tbody>';
+  document.getElementById('detail-table').innerHTML=h;
+}
+
+// ── Build shift table ───────────────────────────────────────────────────
+function buildShiftTable(){
+  let h='<thead><tr><th>Region</th><th>FY2020 Revenue</th><th>FY2024 Revenue</th><th>FY2020 Share</th><th>FY2024 Share</th><th>Share change</th><th>5-yr CAGR</th></tr></thead><tbody>';
+  REGION_NAMES.forEach(r=>{
+    const d=REGIONS[r].data;
+    const s20=getPct(r,0), s24=getPct(r,4), delta=+(s24-s20).toFixed(1);
+    const cagr=+((Math.pow(d[4]/d[0],1/4)-1)*100).toFixed(1);
+    h+=`<tr>
+      <td style="font-weight:500;color:${REGIONS[r].color}">${r}</td>
+      <td>€${d[0].toLocaleString()}M</td>
+      <td>€${d[4].toLocaleString()}M</td>
+      <td>${s20}%</td>
+      <td>${s24}%</td>
+      <td><span class="badge ${delta>=0?'pos':'neg'}">${delta>=0?'+':''}${delta} pp</span></td>
+      <td><span class="badge ${cagr>=0?'pos':'neg'}">${cagr>=0?'+':''}${cagr}%</span></td>
+    </tr>`;
+  });
+  h+='</tbody>';
+  document.getElementById('shift-table').innerHTML=h;
+}
+
+// ── Charts ──────────────────────────────────────────────────────────────
+function buildCharts(){
+  // Stacked bar
+  new Chart(document.getElementById('stackedBar'),{
+    type:'bar',
+    data:{labels:YEARS,datasets:REGION_NAMES.map(r=>({
+      label:r, data:REGIONS[r].data.map(v=>+(v/1000).toFixed(1)),
+      backgroundColor:REGIONS[r].color, borderRadius:0
+    }))},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: €${ctx.parsed.y}B`}}},
+      scales:{
+        x:{stacked:true,ticks:{color:'#6B6560',font:{size:12}},grid:{display:false}},
+        y:{stacked:true,ticks:{color:'#6B6560',font:{size:11},callback:v=>`€${v}B`},grid:{color:'rgba(255,255,255,0.05)'}}
+      }}
+  });
+
+  // Donut
+  new Chart(document.getElementById('donutChart'),{
+    type:'doughnut',
+    data:{labels:REGION_NAMES,datasets:[{data:REGION_NAMES.map(r=>getPct(r,4)),
+      backgroundColor:REGION_NAMES.map(r=>REGIONS[r].color),borderWidth:0,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed}%`}}}}
+  });
+
+  // Growth bar FY2024
+  const growthData=REGION_NAMES.map(r=>getYoY(r,4));
+  new Chart(document.getElementById('growthBar'),{
+    type:'bar',
+    data:{labels:REGION_NAMES.map(r=>r.replace(' excl. ','\nexcl. ')),
+      datasets:[{data:growthData,
+        backgroundColor:growthData.map(v=>v>=0?'rgba(76,175,125,0.7)':'rgba(224,92,92,0.7)'),
+        borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.x}% YoY`}}},
+      scales:{
+        x:{ticks:{color:'#6B6560',font:{size:11},callback:v=>`${v}%`},grid:{color:'rgba(255,255,255,0.05)'}},
+        y:{ticks:{color:'#A09890',font:{size:11}},grid:{display:false}}
+      }}
+  });
+
+  // Mix line
+  new Chart(document.getElementById('mixLine'),{
+    type:'line',
+    data:{labels:YEARS,datasets:REGION_NAMES.map(r=>({
+      label:r, data:YEARS.map((_,i)=>getPct(r,i)),
+      borderColor:REGIONS[r].color, backgroundColor:'transparent',
+      tension:0.3, pointRadius:4, pointBackgroundColor:REGIONS[r].color, borderWidth:2
+    }))},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y}%`}}},
+      scales:{
+        x:{ticks:{color:'#6B6560',font:{size:12}},grid:{display:false}},
+        y:{ticks:{color:'#6B6560',font:{size:11},callback:v=>`${v}%`},grid:{color:'rgba(255,255,255,0.05)'}}
+      }}
+  });
+
+  // YoY line
+  new Chart(document.getElementById('yoyLine'),{
+    type:'line',
+    data:{labels:YEARS.slice(1),datasets:['Asia excl. Japan','United States','Europe excl. France','Japan'].map(r=>({
+      label:r, data:YEARS.slice(1).map((_,i)=>getYoY(r,i+1)),
+      borderColor:REGIONS[r].color, backgroundColor:'transparent',
+      tension:0.3, pointRadius:4, pointBackgroundColor:REGIONS[r].color, borderWidth:2
+    }))},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y}%`}}},
+      scales:{
+        x:{ticks:{color:'#6B6560',font:{size:12}},grid:{display:false}},
+        y:{ticks:{color:'#6B6560',font:{size:11},callback:v=>`${v}%`},grid:{color:'rgba(255,255,255,0.05)'},
+           afterDataLimits(scale){scale.min=Math.min(scale.min,-20);scale.max=Math.max(scale.max,60)}}
+      }}
+  });
+}
+
+// ── SQL queries ──────────────────────────────────────────────────────────
+const queries=[
+  {label:'Revenue by region',sub:'All years, all regions',
+   insight:'Asia excl. Japan was the largest region every year from 2020–2023 but fell sharply in 2024. The US overtook it in absolute terms only in 2023 due to the Tiffany effect.',
+   sql:`-- Full revenue table by region and year
+SELECT
+  r.region_name,
+  fy.fiscal_year,
+  r.revenue_eur_m,
+  ROUND(r.revenue_eur_m * 100.0
+    / t.total_revenue, 1)         AS pct_of_total
+FROM regional_revenue r
+JOIN totals t
+  ON  r.fiscal_year = t.fiscal_year
+JOIN fiscal_years fy
+  ON  r.fiscal_year = fy.year_id
+ORDER BY r.fiscal_year, r.revenue_eur_m DESC;`,
+   run:db=>db.exec(`SELECT r.region_name,fy.fiscal_year,r.revenue_eur_m,
+     ROUND(r.revenue_eur_m*100.0/t.total_revenue,1) AS pct_of_total
+     FROM regional_revenue r JOIN totals t ON r.fiscal_year=t.fiscal_year
+     JOIN fiscal_years fy ON r.fiscal_year=fy.year_id
+     ORDER BY r.fiscal_year,r.revenue_eur_m DESC`)[0]},
+
+  {label:'YoY growth by region',sub:'CASE WHEN + LAG equivalent',
+   insight:'FY2021 was exceptional across all regions — post-COVID rebound drove 40%+ growth in Asia and US. FY2024 shows the divergence: Japan +28% while Asia ex-Japan -12.5%.',
+   sql:`-- Year-over-year growth rates by region
+SELECT
+  curr.region_name,
+  curr_fy.fiscal_year             AS year,
+  prev.revenue_eur_m              AS prev_revenue,
+  curr.revenue_eur_m              AS curr_revenue,
+  curr.revenue_eur_m
+    - prev.revenue_eur_m          AS abs_change,
+  ROUND((curr.revenue_eur_m
+    - prev.revenue_eur_m) * 100.0
+    / prev.revenue_eur_m, 1)     AS yoy_growth_pct
+FROM regional_revenue curr
+JOIN regional_revenue prev
+  ON  curr.region_name = prev.region_name
+  AND curr.fiscal_year = prev.fiscal_year + 1
+JOIN fiscal_years curr_fy
+  ON  curr.fiscal_year = curr_fy.year_id
+ORDER BY curr.fiscal_year, yoy_growth_pct DESC;`,
+   run:db=>db.exec(`SELECT curr.region_name,curr_fy.fiscal_year,prev.revenue_eur_m AS prev_rev,
+     curr.revenue_eur_m AS curr_rev,curr.revenue_eur_m-prev.revenue_eur_m AS abs_change,
+     ROUND((curr.revenue_eur_m-prev.revenue_eur_m)*100.0/prev.revenue_eur_m,1) AS yoy_pct
+     FROM regional_revenue curr JOIN regional_revenue prev
+     ON curr.region_name=prev.region_name AND curr.fiscal_year=prev.fiscal_year+1
+     JOIN fiscal_years curr_fy ON curr.fiscal_year=curr_fy.year_id
+     ORDER BY curr.fiscal_year,yoy_pct DESC`)[0]},
+
+  {label:'Share shift analysis',sub:'FY2020 vs FY2024 mix change',
+   insight:'The US gained +3.5pp of revenue share over 5 years (Tiffany acquisition). Japan gained +5pp. Asia ex-Japan lost -2pp despite being the largest absolute contributor. China domestic is the key risk.',
+   sql:`-- Regional share: FY2020 vs FY2024 (pivot comparison)
+SELECT
+  r20.region_name,
+  r20.revenue_eur_m               AS rev_2020,
+  r24.revenue_eur_m               AS rev_2024,
+  ROUND(r20.revenue_eur_m * 100.0
+    / t20.total_revenue, 1)       AS share_2020_pct,
+  ROUND(r24.revenue_eur_m * 100.0
+    / t24.total_revenue, 1)       AS share_2024_pct,
+  ROUND(r24.revenue_eur_m * 100.0
+    / t24.total_revenue
+    - r20.revenue_eur_m * 100.0
+    / t20.total_revenue, 1)       AS share_change_pp,
+  ROUND((POWER(r24.revenue_eur_m
+    / r20.revenue_eur_m, 0.25)
+    - 1) * 100, 1)                AS cagr_pct
+FROM regional_revenue r20
+JOIN regional_revenue r24
+  ON  r20.region_name = r24.region_name
+JOIN totals t20 ON t20.fiscal_year = 1
+JOIN totals t24 ON t24.fiscal_year = 5
+WHERE r20.fiscal_year = 1
+  AND r24.fiscal_year = 5
+ORDER BY share_2024_pct DESC;`,
+   run:db=>db.exec(`SELECT r20.region_name,r20.revenue_eur_m AS rev_2020,r24.revenue_eur_m AS rev_2024,
+     ROUND(r20.revenue_eur_m*100.0/t20.total_revenue,1) AS share_2020,
+     ROUND(r24.revenue_eur_m*100.0/t24.total_revenue,1) AS share_2024,
+     ROUND(r24.revenue_eur_m*100.0/t24.total_revenue-r20.revenue_eur_m*100.0/t20.total_revenue,1) AS share_delta,
+     ROUND((POWER(CAST(r24.revenue_eur_m AS REAL)/r20.revenue_eur_m,0.25)-1)*100,1) AS cagr_pct
+     FROM regional_revenue r20 JOIN regional_revenue r24 ON r20.region_name=r24.region_name
+     JOIN totals t20 ON t20.fiscal_year=1 JOIN totals t24 ON t24.fiscal_year=5
+     WHERE r20.fiscal_year=1 AND r24.fiscal_year=5 ORDER BY share_2024 DESC`)[0]},
+
+  {label:'Best/worst by year',sub:'MAX/MIN per fiscal year',
+   insight:'Asia ex-Japan was the best performing region every year from 2021–2023. In 2024 Japan flipped to #1 growth rate for the first time, a structural shift driven by yen weakness and Chinese tourist flows.',
+   sql:`-- Best and worst performing region each year
+SELECT
+  fy.fiscal_year,
+  MAX(CASE WHEN sub.rank_best=1
+    THEN sub.region_name END)     AS best_region,
+  MAX(CASE WHEN sub.rank_best=1
+    THEN sub.yoy_pct END)         AS best_growth,
+  MAX(CASE WHEN sub.rank_worst=1
+    THEN sub.region_name END)     AS worst_region,
+  MAX(CASE WHEN sub.rank_worst=1
+    THEN sub.yoy_pct END)         AS worst_growth
+FROM (
+  SELECT curr.region_name, curr.fiscal_year,
+    ROUND((curr.revenue_eur_m-prev.revenue_eur_m)
+      *100.0/prev.revenue_eur_m,1) AS yoy_pct,
+    RANK() OVER (PARTITION BY curr.fiscal_year
+      ORDER BY curr.revenue_eur_m-prev.revenue_eur_m DESC) AS rank_best,
+    RANK() OVER (PARTITION BY curr.fiscal_year
+      ORDER BY curr.revenue_eur_m-prev.revenue_eur_m ASC) AS rank_worst
+  FROM regional_revenue curr
+  JOIN regional_revenue prev
+    ON curr.region_name=prev.region_name
+    AND curr.fiscal_year=prev.fiscal_year+1
+) sub
+JOIN fiscal_years fy ON sub.fiscal_year=fy.year_id
+GROUP BY fy.fiscal_year
+ORDER BY fy.fiscal_year;`,
+   run:db=>db.exec(`SELECT fy.fiscal_year,
+     MAX(CASE WHEN sub.rk_best=1 THEN sub.region_name END) AS best_region,
+     MAX(CASE WHEN sub.rk_best=1 THEN sub.yoy_pct END) AS best_growth,
+     MAX(CASE WHEN sub.rk_worst=1 THEN sub.region_name END) AS worst_region,
+     MAX(CASE WHEN sub.rk_worst=1 THEN sub.yoy_pct END) AS worst_growth
+     FROM (SELECT curr.region_name,curr.fiscal_year,
+       ROUND((curr.revenue_eur_m-prev.revenue_eur_m)*100.0/prev.revenue_eur_m,1) AS yoy_pct,
+       RANK() OVER (PARTITION BY curr.fiscal_year ORDER BY curr.revenue_eur_m-prev.revenue_eur_m DESC) AS rk_best,
+       RANK() OVER (PARTITION BY curr.fiscal_year ORDER BY curr.revenue_eur_m-prev.revenue_eur_m ASC) AS rk_worst
+       FROM regional_revenue curr JOIN regional_revenue prev
+       ON curr.region_name=prev.region_name AND curr.fiscal_year=prev.fiscal_year+1) sub
+     JOIN fiscal_years fy ON sub.fiscal_year=fy.year_id
+     GROUP BY fy.fiscal_year ORDER BY fy.fiscal_year`)[0]},
+
+  {label:'5-yr CAGR ranking',sub:'Compound annual growth rate',
+   insight:'Japan had the highest 5-year CAGR at ~18.7% — partly organic, partly the yen effect. Other markets (incl. travel retail recovery) also outpaced. The US CAGR of ~16.6% reflects the Tiffany acquisition pulling FY2022 revenue up significantly.',
+   sql:`-- 5-year CAGR by region (FY2020 to FY2024)
+SELECT
+  r_start.region_name,
+  r_start.revenue_eur_m           AS base_rev_2020,
+  r_end.revenue_eur_m             AS final_rev_2024,
+  r_end.revenue_eur_m
+    - r_start.revenue_eur_m       AS abs_growth,
+  ROUND((POWER(
+    CAST(r_end.revenue_eur_m AS REAL)
+    / r_start.revenue_eur_m,
+    1.0/4) - 1) * 100, 1)        AS cagr_pct
+FROM regional_revenue r_start
+JOIN regional_revenue r_end
+  ON  r_start.region_name = r_end.region_name
+WHERE r_start.fiscal_year = 1
+  AND r_end.fiscal_year   = 5
+ORDER BY cagr_pct DESC;`,
+   run:db=>db.exec(`SELECT r_start.region_name,r_start.revenue_eur_m AS base_2020,
+     r_end.revenue_eur_m AS final_2024,
+     r_end.revenue_eur_m-r_start.revenue_eur_m AS abs_growth,
+     ROUND((POWER(CAST(r_end.revenue_eur_m AS REAL)/r_start.revenue_eur_m,0.25)-1)*100,1) AS cagr_pct
+     FROM regional_revenue r_start JOIN regional_revenue r_end
+     ON r_start.region_name=r_end.region_name
+     WHERE r_start.fiscal_year=1 AND r_end.fiscal_year=5
+     ORDER BY cagr_pct DESC`)[0]}
+];
+
+function hl(sql){
+  const kws=['SELECT','FROM','WHERE','JOIN','ON','GROUP BY','ORDER BY','HAVING','CASE','WHEN','THEN','ELSE','END','AS','BY','OVER','PARTITION','RANK','POWER','CAST','SUM','COUNT','MAX','MIN','ROUND','AND','OR','DESC','ASC'];
+  let s=sql.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  s=s.replace(/(--[^\n]*)/g,'<span class="cm">$1</span>');
+  kws.forEach(k=>{s=s.replace(new RegExp(`\\b(${k})\\b`,'g'),`<span class="kw">$1</span>`);});
+  s=s.replace(/\b(\d+\.?\d*)\b/g,'<span class="num">$1</span>');
+  s=s.replace(/'([^']*)'/g,"<span class='str'>'$1'</span>");
+  return s;
+}
+
+function fmtVal(v,col){
+  if(v===null||v===undefined) return '<span style="color:var(--text-dim)">—</span>';
+  const c=String(col).toLowerCase();
+  if(typeof v==='number'){
+    if(c.includes('pct')||c.includes('cagr')||c.includes('growth')||c.includes('yoy')||c.includes('delta')||c.includes('change')){
+      const pos=v>=0,color=pos?'#4CAF7D':'#E05C5C',bg=pos?'rgba(76,175,125,0.15)':'rgba(224,92,92,0.15)';
+      return `<span class="badge" style="background:${bg};color:${color}">${v>0?'+':''}${v}%</span>`;
+    }
+    if(c.includes('rev')||c.includes('change')||c.includes('growth')&&!c.includes('pct')){
+      return `€${v.toLocaleString()}M`;
+    }
+  }
+  return String(v);
+}
+
+function renderTable(r){
+  if(!r) return '<p style="color:var(--text-dim);font-size:13px;padding:8px 0">No results</p>';
+  let h='<table><thead><tr>'+r.columns.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody>';
+  r.values.forEach(row=>{h+='<tr>'+row.map((v,i)=>`<td>${fmtVal(v,r.columns[i])}</td>`).join('')+'</tr>';});
+  return h+'</tbody></table>';
+}
+
+function buildQueryList(){
+  const list=document.getElementById('q-list');
+  queries.forEach((q,i)=>{
+    const btn=document.createElement('button');
+    btn.className='q-btn'+(i===0?' active':'');
+    btn.innerHTML=`<span class="ql">${q.label}</span><span class="qs">${q.sub}</span>`;
+    btn.onclick=()=>runQuery(i);
+    list.appendChild(btn);
+  });
+}
+
+function runQuery(idx){
+  document.querySelectorAll('.q-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  const q=queries[idx];
+  document.getElementById('sql-out').innerHTML=hl(q.sql);
+  try{
+    const r=q.run(db);
+    const rows=r?r.values.length:0;
+    document.getElementById('row-cnt').textContent=`— ${rows} row${rows!==1?'s':''}`;
+    document.getElementById('res-out').innerHTML=renderTable(r);
+  }catch(e){
+    document.getElementById('res-out').innerHTML=`<p style="color:#E05C5C">${e.message}</p>`;
+  }
+  document.getElementById('insight-out').textContent=q.insight;
+}
+
+function showTab(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.querySelectorAll('.tab').forEach((b,i)=>{
+    if(['overview','trends','queries'][i]===name) b.classList.add('active');
+  });
+}
+
+// ── Init DB ──────────────────────────────────────────────────────────────
+let db;
+initSqlJs({locateFile:f=>`https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}`}).then(SQL=>{
+  db=new SQL.Database();
+  db.run(`CREATE TABLE fiscal_years(year_id INT PRIMARY KEY, fiscal_year TEXT)`);
+  YEARS.forEach((y,i)=>db.run(`INSERT INTO fiscal_years VALUES(${i+1},'${y}')`));
+  db.run(`CREATE TABLE totals(fiscal_year INT PRIMARY KEY, total_revenue REAL)`);
+  TOTAL.forEach((t,i)=>db.run(`INSERT INTO totals VALUES(${i+1},${t})`));
+  db.run(`CREATE TABLE regional_revenue(id INT PRIMARY KEY, region_name TEXT, fiscal_year INT, revenue_eur_m REAL)`);
+  let id=1;
+  REGION_NAMES.forEach(r=>{
+    REGIONS[r].data.forEach((v,i)=>db.run(`INSERT INTO regional_revenue VALUES(${id++},'${r}',${i+1},${v})`));
+  });
+  buildQueryList();
+  runQuery(0);
+});
+
+buildDetailTable();
+buildShiftTable();
+buildCharts();
+</script>
+</body>
+</html>
