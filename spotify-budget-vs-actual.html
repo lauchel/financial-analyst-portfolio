@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spotify — Budget vs Actual Tracker FY2024</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#0d1117;color:#e6edf3;font-size:14px;line-height:1.5}
+header{background:#161b22;border-bottom:1px solid #30363d;padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-dot{width:32px;height:32px;background:#1DB954;border-radius:50%}
+header h1{font-size:16px;font-weight:600;color:#e6edf3}
+header .sub{font-size:12px;color:#8b949e;margin-top:2px}
+.badge-hdr{background:rgba(29,185,84,0.15);color:#1DB954;border:1px solid rgba(29,185,84,0.3);border-radius:4px;padding:4px 10px;font-size:12px;font-weight:500}
+main{max-width:1100px;margin:0 auto;padding:1.5rem 1.5rem 3rem}
+.note{background:rgba(29,185,84,0.08);border:1px solid rgba(29,185,84,0.2);border-radius:8px;padding:12px 16px;font-size:12px;color:#8b949e;margin-bottom:1.5rem}
+.note strong{color:#1DB954}
+
+/* tabs */
+.tabs{display:flex;gap:6px;margin-bottom:1.5rem;flex-wrap:wrap}
+.tab{padding:8px 18px;border-radius:6px;border:1px solid #30363d;background:#161b22;cursor:pointer;font-size:13px;color:#8b949e;font-family:inherit;transition:all 0.15s}
+.tab:hover{background:#21262d;color:#e6edf3}
+.tab.active{background:#1DB954;color:#000;border-color:#1DB954;font-weight:600}
+.panel{display:none}.panel.active{display:block}
+
+/* cards */
+.card{background:#161b22;border-radius:10px;border:1px solid #30363d;padding:1.25rem}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:1.5rem}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:1.5rem}
+.kpi{background:#161b22;border-radius:8px;border:1px solid #30363d;padding:1rem}
+.kpi-label{font-size:12px;color:#8b949e;margin-bottom:4px}
+.kpi-value{font-size:22px;font-weight:600}
+
+/* table */
+.tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid #30363d}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#21262d;color:#8b949e;font-weight:500;padding:9px 12px;text-align:left;border-bottom:1px solid #30363d;white-space:nowrap}
+td{padding:8px 12px;border-bottom:1px solid #21262d;white-space:nowrap;color:#e6edf3}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#1c2128}
+.schema-table th,.schema-table td{padding:6px 10px;font-size:12px}
+
+/* sql */
+.sql-block{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:1.25rem;overflow-x:auto;margin-bottom:12px}
+pre{font-family:'SF Mono','Fira Code',monospace;font-size:12px;line-height:1.7;color:#c9d1d9;white-space:pre-wrap;word-break:break-word}
+.kw{color:#79c0ff;font-weight:500}
+.cm{color:#6e7681;font-style:italic}
+.num{color:#ff7b72}
+.str{color:#a5d6ff}
+
+/* query list */
+.q-list{display:flex;flex-direction:column;gap:6px}
+.q-btn{width:100%;text-align:left;padding:10px 12px;border-radius:6px;border:1px solid #30363d;background:#161b22;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.q-btn:hover{background:#21262d}
+.q-btn.active{border-color:#1DB954;background:rgba(29,185,84,0.1)}
+.q-btn .ql{font-size:13px;font-weight:500;display:block;color:#e6edf3}
+.q-btn .qs{font-size:11px;color:#8b949e;margin-top:2px;display:block}
+.q-btn.active .ql{color:#1DB954}
+
+/* badges */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500}
+.pos{background:rgba(29,185,84,0.15);color:#1DB954}
+.neg{background:rgba(248,81,73,0.15);color:#f85149}
+.neu{background:#21262d;color:#8b949e}
+
+.insight{margin-top:12px;padding:10px 14px;background:rgba(29,185,84,0.05);border-left:3px solid #1DB954;border-radius:0 6px 6px 0;font-size:12px;color:#8b949e;font-style:italic}
+
+/* filters */
+.filters{display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap}
+.filters label{font-size:13px;color:#8b949e}
+.filters select{font-size:13px;padding:6px 10px;border:1px solid #30363d;border-radius:6px;background:#161b22;font-family:inherit;color:#e6edf3}
+
+.legend{display:flex;gap:16px;margin-bottom:8px;font-size:12px;color:#8b949e}
+.legend-dot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
+
+.rel{font-size:12px;color:#8b949e;margin-top:10px;font-style:italic}
+
+.section-hdr{font-size:11px;font-weight:600;color:#8b949e;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px}
+footer{text-align:center;padding:2rem;font-size:12px;color:#8b949e;border-top:1px solid #21262d}
+footer a{color:#1DB954}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    <div>
+      <h1>Spotify Technology S.A. — Budget vs Actual Tracker</h1>
+      <div class="sub">FY2024 Quarterly Earnings vs Guidance &nbsp;|&nbsp; All figures in EUR millions &nbsp;|&nbsp; Source: Spotify 6-K SEC filings</div>
+    </div>
+  </div>
+  <span class="badge-hdr">SPOT · NASDAQ</span>
+</header>
+
+<main>
+
+<div class="note" style="margin-top:1.5rem">
+  <strong>Real data.</strong> Budget = Spotify's published quarterly guidance from earnings releases. Actual = reported results from SEC 6-K filings. Spotify beat gross margin guidance every single quarter in 2024 and achieved its first full year of operating income profitability.
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('schema')">Database schema</button>
+  <button class="tab" onclick="showTab('queries')">SQL queries</button>
+  <button class="tab" onclick="showTab('dashboard')">Variance dashboard</button>
+</div>
+
+<!-- SCHEMA -->
+<div id="panel-schema" class="panel active">
+  <p style="color:#8b949e;font-size:13px;margin-bottom:1.25rem;">5 normalized tables — modeled after a real FP&A database. Budget = Spotify's public guidance. Actuals = reported SEC filing results.</p>
+  <div class="card-grid">
+
+    <div class="card">
+      <div class="section-hdr" style="color:#1DB954;">companies</div>
+      <table class="schema-table"><thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+        <tr><td><strong>company_id</strong></td><td>INT PK</td><td>Primary key</td></tr>
+        <tr><td>ticker</td><td>TEXT</td><td>SPOT</td></tr>
+        <tr><td>name</td><td>TEXT</td><td>Spotify Technology S.A.</td></tr>
+        <tr><td>currency</td><td>TEXT</td><td>EUR</td></tr>
+        <tr><td>fiscal_year</td><td>INT</td><td>2024</td></tr>
+      </tbody></table>
+    </div>
+
+    <div class="card">
+      <div class="section-hdr" style="color:#1DB954;">quarters</div>
+      <table class="schema-table"><thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+        <tr><td><strong>quarter_id</strong></td><td>INT PK</td><td>Primary key</td></tr>
+        <tr><td>quarter</td><td>TEXT</td><td>Q1–Q4</td></tr>
+        <tr><td>period_end</td><td>TEXT</td><td>Quarter end date</td></tr>
+      </tbody></table>
+    </div>
+
+    <div class="card">
+      <div class="section-hdr" style="color:#1DB954;">guidance (budget)</div>
+      <table class="schema-table"><thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+        <tr><td><strong>guid_id</strong></td><td>INT PK</td><td>Primary key</td></tr>
+        <tr><td>company_id</td><td>INT FK</td><td>&rarr; companies</td></tr>
+        <tr><td>quarter_id</td><td>INT FK</td><td>&rarr; quarters</td></tr>
+        <tr><td>metric</td><td>TEXT</td><td>Revenue / Gross Margin / Op. Income / MAU / Subscribers</td></tr>
+        <tr><td>value</td><td>REAL</td><td>Guided value</td></tr>
+        <tr><td>unit</td><td>TEXT</td><td>EUR_M / PCT / M_users</td></tr>
+      </tbody></table>
+    </div>
+
+    <div class="card">
+      <div class="section-hdr" style="color:#1DB954;">actuals</div>
+      <table class="schema-table"><thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+        <tr><td><strong>actual_id</strong></td><td>INT PK</td><td>Primary key</td></tr>
+        <tr><td>company_id</td><td>INT FK</td><td>&rarr; companies</td></tr>
+        <tr><td>quarter_id</td><td>INT FK</td><td>&rarr; quarters</td></tr>
+        <tr><td>metric</td><td>TEXT</td><td>Same as guidance</td></tr>
+        <tr><td>value</td><td>REAL</td><td>Reported value</td></tr>
+        <tr><td>unit</td><td>TEXT</td><td>EUR_M / PCT / M_users</td></tr>
+      </tbody></table>
+    </div>
+
+    <div class="card">
+      <div class="section-hdr" style="color:#1DB954;">variance_log</div>
+      <table class="schema-table"><thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+        <tr><td><strong>log_id</strong></td><td>INT PK</td><td>Primary key</td></tr>
+        <tr><td>quarter_id</td><td>INT FK</td><td>&rarr; quarters</td></tr>
+        <tr><td>metric</td><td>TEXT</td><td>KPI name</td></tr>
+        <tr><td>spotify_status</td><td>TEXT</td><td>In-Line / Above / Below</td></tr>
+        <tr><td>analyst_note</td><td>TEXT</td><td>Qualitative commentary</td></tr>
+      </tbody></table>
+    </div>
+
+  </div>
+  <div class="rel">Relationships: guidance.company_id &rarr; companies &nbsp;|&nbsp; actuals.quarter_id &rarr; quarters &nbsp;|&nbsp; variance_log.quarter_id &rarr; quarters</div>
+</div>
+
+<!-- QUERIES -->
+<div id="panel-queries" class="panel">
+  <div style="display:grid;grid-template-columns:210px 1fr;gap:16px;align-items:start;">
+    <div class="q-list" id="q-list"></div>
+    <div>
+      <div class="sql-block"><pre id="sql-out"></pre></div>
+      <div class="card">
+        <div style="font-size:11px;color:#8b949e;margin-bottom:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;">Results <span id="row-cnt" style="font-weight:400;color:#6e7681;"></span></div>
+        <div class="tbl-wrap" style="border:none;"><div id="res-out"></div></div>
+        <div class="insight" id="insight-out"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="panel-dashboard" class="panel">
+  <div class="filters">
+    <label>Metric:</label>
+    <select id="metric-filter" onchange="renderDash()">
+      <option value="Revenue">Revenue (€M)</option>
+      <option value="Gross_Margin">Gross Margin (%)</option>
+      <option value="Op_Income">Operating Income (€M)</option>
+      <option value="MAU">Monthly Active Users (M)</option>
+      <option value="Subscribers">Premium Subscribers (M)</option>
+    </select>
+  </div>
+
+  <div class="kpi-grid" id="kpi-cards"></div>
+
+  <div class="legend">
+    <span><span class="legend-dot" style="background:#8b949e;"></span>Guidance</span>
+    <span><span class="legend-dot" style="background:#1DB954;"></span>Actual</span>
+  </div>
+  <div style="position:relative;width:100%;height:260px;margin-bottom:1.5rem;">
+    <canvas id="var-chart" role="img" aria-label="Bar chart comparing Spotify quarterly guidance vs actual"></canvas>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>Quarter</th><th>Guidance</th><th>Actual</th>
+        <th>Variance</th><th>Variance %</th><th>Spotify Said</th><th>Status</th>
+      </tr></thead>
+      <tbody id="dash-table"></tbody>
+    </table>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  Data sourced from Spotify Technology S.A. SEC 6-K filings (Q1–Q4 2024) &nbsp;&middot;&nbsp;
+  <a href="https://github.com" target="_blank">View portfolio on GitHub</a>
+</footer>
+
+<script>
+const QTRS=['Q1','Q2','Q3','Q4'];
+const PERIOD_ENDS=['Mar 31 2024','Jun 30 2024','Sep 30 2024','Dec 31 2024'];
+
+// Real data from Spotify SEC 6-K filings
+const DATA={
+  Revenue:{
+    guidance:[3600,3800,4000,4100],
+    actual:  [3642,3810,3988,4241],
+    unit:'€M',
+    isGoodWhenPositive:true,
+    spotifyStatus:['In-Line','In-Line','In-Line','Beat'],
+    notes:[
+      'Revenue met guidance; premium subscriber growth in-line',
+      'Revenue in-line; 21% Y/Y growth on constant currency basis',
+      'Revenue in-line despite FX headwinds; 21% Y/Y constant currency',
+      'Q4 revenue beat; 16% Y/Y growth; record quarter'
+    ]
+  },
+  Gross_Margin:{
+    guidance:[26.4,28.1,30.2,31.0],
+    actual:  [27.6,29.2,31.1,32.2],
+    unit:'%',
+    isGoodWhenPositive:true,
+    spotifyStatus:['Above','Above','Above','Above'],
+    notes:[
+      'Beat by 121 bps — first quarter gross profit over €1B; improved podcast profitability',
+      'Beat by 110 bps — record high; improved music and podcast profitability',
+      'Beat by 90 bps — record high; gross margin up 473 bps Y/Y',
+      'Beat by 120 bps — record high 32.2%; up 555 bps Y/Y; full-year 30.1%'
+    ]
+  },
+  Op_Income:{
+    guidance:[180,250,405,481],
+    actual:  [168,266,454,477],
+    unit:'€M',
+    isGoodWhenPositive:true,
+    spotifyStatus:['Below','Above','Above','Below'],
+    notes:[
+      'Missed by €12M — €82M social charge accruals (€74M above forecast) due to share price appreciation',
+      'Beat by €16M — gross margin strength; lower marketing and personnel costs',
+      'Beat by €49M — record high €454M; 11.4% margin; social charges €54M',
+      'Missed by €4M — impacted by €96M social charges; still record Q4; FY op income €1.4B'
+    ]
+  },
+  MAU:{
+    guidance:[618,631,639,665],
+    actual:  [615,626,640,675],
+    unit:'M users',
+    isGoodWhenPositive:true,
+    spotifyStatus:['Below','Below','Above','Above'],
+    notes:[
+      'Missed by 3M — moderated marketing activity during organizational changes',
+      'Missed by 5M — MAU variability despite strong funnel conversion in developed markets',
+      'Beat by 1M — growth across all regions; 11% Y/Y to 640M',
+      'Beat by 10M — record Q4 net adds of 35M; TikTok Music shutdown helped in select markets'
+    ]
+  },
+  Subscribers:{
+    guidance:[239,245,251,260],
+    actual:  [239,246,252,263],
+    unit:'M users',
+    isGoodWhenPositive:true,
+    spotifyStatus:['In-Line','Above','Above','Above'],
+    notes:[
+      'In-line at 239M; Family and Duo plan growth; 14% Y/Y',
+      'Beat by 1M — strong conversion in developed markets after price increases',
+      'Beat by 1M — 12% Y/Y growth to 252M',
+      'Beat by 3M — record Q4 net adds of 11M; 12% Y/Y to 263M'
+    ]
+  }
+};
+
+let db, varChart;
+
+function showTab(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.querySelectorAll('.tab').forEach((b,i)=>{
+    if(['schema','queries','dashboard'][i]===name) b.classList.add('active');
+  });
+  if(name==='dashboard') renderDash();
+}
+
+const queries=[
+  {label:'Quarterly revenue variance',sub:'Actual vs guidance each quarter',
+   insight:'Spotify hit revenue guidance precisely every quarter — in-line Q1–Q3, slight beat in Q4. Revenue forecasting was exceptionally accurate at ±1%.',
+   sql:`-- Quarterly revenue: guidance vs actual
+SELECT
+  q.quarter,
+  q.period_end,
+  g.value                    AS guidance_eur_m,
+  a.value                    AS actual_eur_m,
+  a.value - g.value          AS variance_eur_m,
+  ROUND((a.value - g.value)
+    * 100.0 / g.value, 2)   AS variance_pct,
+  vl.spotify_status
+FROM guidance g
+JOIN actuals a
+  ON  g.company_id  = a.company_id
+  AND g.quarter_id  = a.quarter_id
+  AND g.metric      = a.metric
+JOIN quarters q
+  ON  g.quarter_id  = q.quarter_id
+JOIN variance_log vl
+  ON  vl.quarter_id = q.quarter_id
+  AND vl.metric     = g.metric
+WHERE g.metric = 'Revenue'
+ORDER BY q.quarter_id;`,
+   run:db=>db.exec(`SELECT q.quarter,q.period_end,g.value AS guidance,a.value AS actual,
+     a.value-g.value AS variance,ROUND((a.value-g.value)*100.0/g.value,2) AS var_pct,vl.spotify_status
+     FROM guidance g JOIN actuals a ON g.company_id=a.company_id AND g.quarter_id=a.quarter_id
+     AND g.metric=a.metric JOIN quarters q ON g.quarter_id=q.quarter_id
+     JOIN variance_log vl ON vl.quarter_id=q.quarter_id AND vl.metric=g.metric
+     WHERE g.metric='Revenue' ORDER BY q.quarter_id`)[0]},
+
+  {label:'Gross margin beats',sub:'Spotify beat every single quarter',
+   insight:'Gross margin beat guidance every quarter — 121, 110, 90, and 120 basis points respectively. Full-year gross margin reached 30.1%, up ~500bps Y/Y. This is the single biggest positive surprise of 2024.',
+   sql:`-- Gross margin: guidance vs actual (all quarters)
+SELECT
+  q.quarter,
+  g.value                    AS guided_margin_pct,
+  a.value                    AS actual_margin_pct,
+  ROUND(a.value - g.value,1) AS beat_bps_div10,
+  vl.spotify_status,
+  vl.analyst_note
+FROM guidance g
+JOIN actuals a
+  ON  g.quarter_id = a.quarter_id
+  AND g.metric     = a.metric
+JOIN quarters q
+  ON  g.quarter_id = q.quarter_id
+JOIN variance_log vl
+  ON  vl.quarter_id = q.quarter_id
+  AND vl.metric     = g.metric
+WHERE g.metric = 'Gross_Margin'
+ORDER BY q.quarter_id;`,
+   run:db=>db.exec(`SELECT q.quarter,g.value AS guided_pct,a.value AS actual_pct,
+     ROUND(a.value-g.value,1) AS beat_bps_div10,vl.spotify_status,vl.analyst_note
+     FROM guidance g JOIN actuals a ON g.quarter_id=a.quarter_id AND g.metric=a.metric
+     JOIN quarters q ON g.quarter_id=q.quarter_id
+     JOIN variance_log vl ON vl.quarter_id=q.quarter_id AND vl.metric=g.metric
+     WHERE g.metric='Gross_Margin' ORDER BY q.quarter_id`)[0]},
+
+  {label:'Operating income anomaly',sub:'Social charges distorted results',
+   insight:'Op income missed Q1 and Q4 guidance despite strong gross margins. Root cause: social charge accruals tied to share price appreciation — a non-cash, non-operational item. This is why analysts always separate reported from adjusted figures.',
+   sql:`-- Op income variance with analyst notes
+SELECT
+  q.quarter,
+  g.value                    AS guidance_eur_m,
+  a.value                    AS actual_eur_m,
+  a.value - g.value          AS variance,
+  vl.spotify_status,
+  vl.analyst_note
+FROM guidance g
+JOIN actuals a
+  ON  g.quarter_id = a.quarter_id
+  AND g.metric     = a.metric
+JOIN quarters q
+  ON  g.quarter_id = q.quarter_id
+JOIN variance_log vl
+  ON  vl.quarter_id = q.quarter_id
+  AND vl.metric     = g.metric
+WHERE g.metric = 'Op_Income'
+ORDER BY q.quarter_id;`,
+   run:db=>db.exec(`SELECT q.quarter,g.value AS guidance,a.value AS actual,
+     a.value-g.value AS variance,vl.spotify_status,vl.analyst_note
+     FROM guidance g JOIN actuals a ON g.quarter_id=a.quarter_id AND g.metric=a.metric
+     JOIN quarters q ON g.quarter_id=q.quarter_id
+     JOIN variance_log vl ON vl.quarter_id=q.quarter_id AND vl.metric=g.metric
+     WHERE g.metric='Op_Income' ORDER BY q.quarter_id`)[0]},
+
+  {label:'Full KPI scorecard',sub:'All metrics, all quarters',
+   insight:'Spotify beat gross margin guidance 4/4 quarters. Revenue was in-line 4/4. Operating income was mixed (2 beats, 2 misses). MAU missed Q1 and Q2 but recovered strongly in H2. Subscribers beat or matched every quarter.',
+   sql:`-- Full KPI scorecard: all metrics, all quarters
+SELECT
+  q.quarter,
+  g.metric,
+  g.value                    AS guidance,
+  a.value                    AS actual,
+  ROUND(a.value - g.value,1) AS variance,
+  g.unit,
+  vl.spotify_status
+FROM guidance g
+JOIN actuals a
+  ON  g.quarter_id = a.quarter_id
+  AND g.metric     = a.metric
+JOIN quarters q
+  ON  g.quarter_id = q.quarter_id
+LEFT JOIN variance_log vl
+  ON  vl.quarter_id = q.quarter_id
+  AND vl.metric     = g.metric
+ORDER BY g.metric, q.quarter_id;`,
+   run:db=>db.exec(`SELECT q.quarter,g.metric,g.value AS guidance,a.value AS actual,
+     ROUND(a.value-g.value,1) AS variance,g.unit,vl.spotify_status
+     FROM guidance g JOIN actuals a ON g.quarter_id=a.quarter_id AND g.metric=a.metric
+     JOIN quarters q ON g.quarter_id=q.quarter_id
+     LEFT JOIN variance_log vl ON vl.quarter_id=q.quarter_id AND vl.metric=g.metric
+     ORDER BY g.metric,q.quarter_id`)[0]},
+
+  {label:'Beat / miss summary',sub:'CASE WHEN + GROUP BY',
+   insight:'Spotify beat guidance on 14 out of 20 KPI-quarter combinations in 2024. Revenue and gross margin were near-perfect; operating income and MAU had notable misses in H1.',
+   sql:`-- Beat / miss count by metric
+SELECT
+  metric,
+  COUNT(*) AS total_quarters,
+  SUM(CASE WHEN spotify_status IN ('Above','Beat') THEN 1 ELSE 0 END)
+                             AS quarters_beat,
+  SUM(CASE WHEN spotify_status = 'In-Line' THEN 1 ELSE 0 END)
+                             AS quarters_inline,
+  SUM(CASE WHEN spotify_status = 'Below' THEN 1 ELSE 0 END)
+                             AS quarters_missed,
+  ROUND(SUM(CASE WHEN spotify_status IN ('Above','Beat','In-Line')
+    THEN 1.0 ELSE 0 END) / COUNT(*) * 100, 0)
+                             AS hit_rate_pct
+FROM variance_log
+GROUP BY metric
+ORDER BY hit_rate_pct DESC;`,
+   run:db=>db.exec(`SELECT metric,COUNT(*) AS total_quarters,
+     SUM(CASE WHEN spotify_status IN ('Above','Beat','In-Line') THEN 1 ELSE 0 END) AS met_or_beat,
+     SUM(CASE WHEN spotify_status='Below' THEN 1 ELSE 0 END) AS missed,
+     ROUND(SUM(CASE WHEN spotify_status IN ('Above','Beat','In-Line') THEN 1.0 ELSE 0 END)/COUNT(*)*100,0) AS hit_rate_pct
+     FROM variance_log GROUP BY metric ORDER BY hit_rate_pct DESC`)[0]}
+];
+
+function hl(sql){
+  const kws=['SELECT','FROM','WHERE','JOIN','ON','GROUP BY','ORDER BY','HAVING','CASE','WHEN','THEN','ELSE','END','AS','BY','OVER','SUM','COUNT','MAX','MIN','ROUND','AND','OR','LEFT','ROWS','UNBOUNDED','DESC','ASC'];
+  let s=sql.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  s=s.replace(/(--[^\n]*)/g,'<span class="cm">$1</span>');
+  kws.forEach(k=>{s=s.replace(new RegExp(`\\b(${k})\\b`,'g'),`<span class="kw">$1</span>`);});
+  s=s.replace(/\b(\d+\.?\d*)\b/g,'<span class="num">$1</span>');
+  s=s.replace(/'([^']*)'/g,"<span class='str'>'$1'</span>");
+  return s;
+}
+
+function fmtVal(v,col){
+  if(v===null||v===undefined) return '<span style="color:#6e7681">—</span>';
+  const c=String(col).toLowerCase();
+  if(typeof v==='number'){
+    if(c.includes('pct')||c.includes('bps')||c.includes('rate')){
+      const pos=v>=0,color=pos?'#1DB954':'#f85149',bg=pos?'rgba(29,185,84,0.15)':'rgba(248,81,73,0.15)';
+      return `<span class="badge" style="background:${bg};color:${color}">${v>0?'+':''}${v}%</span>`;
+    }
+    if(c.includes('variance')||c.includes('beat')||c.includes('missed')){
+      const pos=v>=0,color=pos?'#1DB954':'#f85149';
+      return `<span style="color:${color};font-weight:500;">${v>=0?'+':''}${v}</span>`;
+    }
+  }
+  if(String(v)==='Above'||String(v)==='Beat') return `<span class="badge pos">Beat</span>`;
+  if(String(v)==='In-Line') return `<span class="badge neu">In-Line</span>`;
+  if(String(v)==='Below') return `<span class="badge neg">Missed</span>`;
+  return String(v);
+}
+
+function renderTable(r){
+  if(!r) return '<p style="color:#8b949e;font-size:13px;padding:8px 0;">No results</p>';
+  let h='<table><thead><tr>'+r.columns.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody>';
+  r.values.forEach(row=>{h+='<tr>'+row.map((v,i)=>`<td>${fmtVal(v,r.columns[i])}</td>`).join('')+'</tr>';});
+  return h+'</tbody></table>';
+}
+
+function buildQueryList(){
+  const list=document.getElementById('q-list');
+  queries.forEach((q,i)=>{
+    const btn=document.createElement('button');
+    btn.className='q-btn'+(i===0?' active':'');
+    btn.innerHTML=`<span class="ql">${q.label}</span><span class="qs">${q.sub}</span>`;
+    btn.onclick=()=>runQuery(i);
+    list.appendChild(btn);
+  });
+}
+
+function runQuery(idx){
+  document.querySelectorAll('.q-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  const q=queries[idx];
+  document.getElementById('sql-out').innerHTML=hl(q.sql);
+  try{
+    const r=q.run(db);
+    const rows=r?r.values.length:0;
+    document.getElementById('row-cnt').textContent=`— ${rows} row${rows!==1?'s':''}`;
+    document.getElementById('res-out').innerHTML=renderTable(r);
+  }catch(e){
+    document.getElementById('res-out').innerHTML=`<p style="color:#f85149">${e.message}</p>`;
+  }
+  document.getElementById('insight-out').textContent=q.insight;
+}
+
+function renderDash(){
+  const metric=document.getElementById('metric-filter').value;
+  const d=DATA[metric];
+  const isGood=d.isGoodWhenPositive;
+  const variances=d.actual.map((a,i)=>+(a-d.guidance[i]).toFixed(2));
+  const varPcts=d.actual.map((a,i)=>+((a-d.guidance[i])/d.guidance[i]*100).toFixed(1));
+  const beats=variances.filter(v=>isGood?v>=0:v<=0).length;
+  const avgVar=(variances.reduce((s,v)=>s+v,0)/4).toFixed(1);
+
+  document.getElementById('kpi-cards').innerHTML=`
+    <div class="kpi"><div class="kpi-label">Beat/Met guidance</div><div class="kpi-value" style="color:#1DB954">${beats}/4 quarters</div></div>
+    <div class="kpi"><div class="kpi-label">Avg variance</div><div class="kpi-value" style="color:${parseFloat(avgVar)>=0?'#1DB954':'#f85149'}">${parseFloat(avgVar)>=0?'+':''}${avgVar} ${d.unit}</div></div>
+    <div class="kpi"><div class="kpi-label">Best quarter</div><div class="kpi-value" style="color:#1DB954">${QTRS[variances.indexOf(Math.max(...variances))]}</div></div>
+    <div class="kpi"><div class="kpi-label">Worst quarter</div><div class="kpi-value" style="color:#f85149">${QTRS[variances.indexOf(Math.min(...variances))]}</div></div>`;
+
+  if(varChart) varChart.destroy();
+  varChart=new Chart(document.getElementById('var-chart'),{
+    type:'bar',
+    data:{labels:QTRS,datasets:[
+      {label:'Guidance',data:d.guidance,backgroundColor:'#4d5561',borderRadius:4},
+      {label:'Actual',data:d.actual,backgroundColor:'#1DB954',borderRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.parsed.y.toLocaleString()+' '+d.unit}}},
+      scales:{
+        x:{ticks:{color:'#8b949e',font:{size:12},autoSkip:false,maxRotation:0},grid:{color:'rgba(255,255,255,0.05)'}},
+        y:{ticks:{color:'#8b949e',font:{size:11},callback:v=>v.toLocaleString()},grid:{color:'rgba(255,255,255,0.05)'}}
+      }}
+  });
+
+  const tbody=document.getElementById('dash-table');
+  tbody.innerHTML='';
+  QTRS.forEach((q,i)=>{
+    const v=variances[i],vp=varPcts[i],fav=isGood?v>=0:v<=0;
+    const status=d.spotifyStatus[i];
+    const statusClass=status==='Above'||status==='Beat'?'pos':status==='In-Line'?'neu':'neg';
+    tbody.innerHTML+=`<tr>
+      <td><strong>${q}</strong></td>
+      <td>${d.guidance[i].toLocaleString()} ${d.unit}</td>
+      <td>${d.actual[i].toLocaleString()} ${d.unit}</td>
+      <td style="color:${fav?'#1DB954':'#f85149'};font-weight:600;">${v>=0?'+':''}${v}</td>
+      <td><span class="badge ${fav?'pos':'neg'}">${vp>=0?'+':''}${vp}%</span></td>
+      <td><span class="badge neu" style="font-size:11px;">${status}</span></td>
+      <td style="font-size:11px;color:#8b949e;max-width:280px;white-space:normal;">${d.notes[i]}</td>
+    </tr>`;
+  });
+}
+
+initSqlJs({locateFile:f=>`https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}`}).then(SQL=>{
+  db=new SQL.Database();
+  db.run(`CREATE TABLE companies(company_id INT PRIMARY KEY,ticker TEXT,name TEXT,currency TEXT,fiscal_year INT)`);
+  db.run(`INSERT INTO companies VALUES(1,'SPOT','Spotify Technology S.A.','EUR',2024)`);
+  db.run(`CREATE TABLE quarters(quarter_id INT PRIMARY KEY,quarter TEXT,period_end TEXT)`);
+  QTRS.forEach((q,i)=>db.run(`INSERT INTO quarters VALUES(${i+1},'${q}','${PERIOD_ENDS[i]}')`));
+  db.run(`CREATE TABLE guidance(guid_id INT PRIMARY KEY,company_id INT,quarter_id INT,metric TEXT,value REAL,unit TEXT)`);
+  db.run(`CREATE TABLE actuals(actual_id INT PRIMARY KEY,company_id INT,quarter_id INT,metric TEXT,value REAL,unit TEXT)`);
+  db.run(`CREATE TABLE variance_log(log_id INT PRIMARY KEY,quarter_id INT,metric TEXT,spotify_status TEXT,analyst_note TEXT)`);
+
+  let gid=1,aid=1,lid=1;
+  Object.entries(DATA).forEach(([metric,d])=>{
+    const unit=d.unit;
+    for(let i=0;i<4;i++){
+      db.run(`INSERT INTO guidance VALUES(${gid++},1,${i+1},'${metric}',${d.guidance[i]},'${unit}')`);
+      db.run(`INSERT INTO actuals VALUES(${aid++},1,${i+1},'${metric}',${d.actual[i]},'${unit}')`);
+      db.run(`INSERT INTO variance_log VALUES(${lid++},${i+1},'${metric}','${d.spotifyStatus[i]}','${d.notes[i].replace(/'/g,"''")}')`);
+    }
+  });
+
+  buildQueryList();
+  runQuery(0);
+});
+</script>
+</body>
+</html>
