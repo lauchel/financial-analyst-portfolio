@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budget vs Actual Tracker — Acme Co. FY2024</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px;line-height:1.5}
+a{color:#185FA5}
+
+/* layout */
+header{background:#1F3864;color:#fff;padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+header h1{font-size:17px;font-weight:500;letter-spacing:-0.01em}
+header .sub{font-size:12px;opacity:0.6;margin-top:2px}
+.badge-header{background:rgba(255,255,255,0.12);border-radius:4px;padding:4px 10px;font-size:12px}
+main{max-width:1100px;margin:0 auto;padding:1.5rem 1.5rem 3rem}
+
+/* tabs */
+.tabs{display:flex;gap:6px;margin-bottom:1.5rem;flex-wrap:wrap}
+.tab{padding:8px 18px;border-radius:6px;border:1px solid #d0d0cc;background:#fff;cursor:pointer;font-size:13px;color:#555;font-family:inherit;transition:all 0.15s}
+.tab:hover{background:#f0f0ee}
+.tab.active{background:#1F3864;color:#fff;border-color:#1F3864;font-weight:500}
+.panel{display:none}
+.panel.active{display:block}
+
+/* cards */
+.card{background:#fff;border-radius:10px;border:1px solid #e0e0dc;padding:1.25rem}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:1.5rem}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1.5rem}
+.kpi{background:#fff;border-radius:8px;border:1px solid #e0e0dc;padding:1rem}
+.kpi-label{font-size:12px;color:#777;margin-bottom:4px}
+.kpi-value{font-size:22px;font-weight:500}
+
+/* table */
+.tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid #e0e0dc}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f5f5f3;color:#666;font-weight:500;padding:9px 12px;text-align:left;border-bottom:1px solid #e0e0dc;white-space:nowrap}
+td{padding:8px 12px;border-bottom:1px solid #f0f0ee;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf8}
+
+/* schema table — tighter */
+.schema-table th,.schema-table td{padding:6px 10px;font-size:12px}
+
+/* sql */
+.sql-block{background:#1e1e2e;border-radius:8px;padding:1.25rem;overflow-x:auto;margin-bottom:12px}
+pre{font-family:'SF Mono','Fira Code',monospace;font-size:12px;line-height:1.7;color:#cdd6f4;white-space:pre-wrap;word-break:break-word}
+.kw{color:#89b4fa;font-weight:500}
+.cm{color:#6c7086;font-style:italic}
+.num{color:#f38ba8}
+.str{color:#a6e3a1}
+
+/* query selector */
+.q-list{display:flex;flex-direction:column;gap:6px}
+.q-btn{width:100%;text-align:left;padding:10px 12px;border-radius:6px;border:1px solid #e0e0dc;background:#fff;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.q-btn:hover{background:#f5f5f3}
+.q-btn.active{border-color:#1F3864;background:#eef1f8}
+.q-btn .ql{font-size:13px;font-weight:500;display:block;color:#1a1a1a}
+.q-btn .qs{font-size:11px;color:#888;margin-top:2px;display:block}
+.q-btn.active .ql{color:#1F3864}
+
+/* badges */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500}
+.pos{background:#e1f5ee;color:#085041}
+.neg{background:#fce8e8;color:#7a1f1f}
+.neu{background:#f0f0ee;color:#555}
+
+/* insight */
+.insight{margin-top:12px;padding:10px 14px;background:#f5f8ff;border-left:3px solid #185FA5;border-radius:0 6px 6px 0;font-size:12px;color:#444;font-style:italic}
+
+/* filters */
+.filters{display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap}
+.filters label{font-size:13px;color:#666}
+.filters select{font-size:13px;padding:6px 10px;border:1px solid #d0d0cc;border-radius:6px;background:#fff;font-family:inherit;color:#1a1a1a}
+
+/* legend */
+.legend{display:flex;gap:16px;margin-bottom:8px;font-size:12px;color:#666}
+.legend-dot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
+
+/* relationship line */
+.rel{font-size:12px;color:#777;margin-top:10px;font-style:italic}
+
+/* footer */
+footer{text-align:center;padding:2rem;font-size:12px;color:#aaa}
+footer a{color:#185FA5}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Budget vs Actual Tracker</h1>
+    <div class="sub">Acme Co. &mdash; FY2024 &mdash; Financial Analyst Portfolio</div>
+  </div>
+  <span class="badge-header">SQLite &bull; SQL &bull; Variance Analysis</span>
+</header>
+
+<main>
+
+<div class="tabs" style="margin-top:1.5rem">
+  <button class="tab active" onclick="showTab('schema')">Database schema</button>
+  <button class="tab" onclick="showTab('queries')">SQL queries</button>
+  <button class="tab" onclick="showTab('dashboard')">Variance dashboard</button>
+</div>
+
+<!-- ── SCHEMA ── -->
+<div id="panel-schema" class="panel active">
+  <p style="color:#555;font-size:13px;margin-bottom:1.25rem;">4 normalized tables — modeled after a real Access / SQL Server FP&amp;A database with foreign key relationships.</p>
+  <div class="card-grid">
+
+    <div class="card">
+      <div style="font-size:12px;font-weight:600;color:#185FA5;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;">companies</div>
+      <table class="schema-table"><thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+        <tr><td><strong>company_id</strong></td><td>INT PK</td><td>Primary key</td></tr>
+        <tr><td>name</td><td>TEXT</td><td>Company name</td></tr>
+        <tr><td>industry</td><td>TEXT</td><td>Sector</td></tr>
+        <tr><td>fiscal_year</td><td>INT</td><td>FY year</td></tr>
+      </tbody></table>
+    </div>
+
+    <div class="card">
+      <div style="font-size:12px;font-weight:600;color:#185FA5;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;">budget</div>
+      <table class="schema-table"><thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+        <tr><td><strong>budget_id</strong></td><td>INT PK</td><td>Primary key</td></tr>
+        <tr><td>company_id</td><td>INT FK</td><td>&rarr; companies</td></tr>
+        <tr><td>month_num</td><td>INT</td><td>1–12</td></tr>
+        <tr><td>category</td><td>TEXT</td><td>Revenue / Expense type</td></tr>
+        <tr><td>amount</td><td>REAL</td><td>Budgeted amount ($)</td></tr>
+      </tbody></table>
+    </div>
+
+    <div class="card">
+      <div style="font-size:12px;font-weight:600;color:#185FA5;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;">actuals</div>
+      <table class="schema-table"><thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+        <tr><td><strong>actual_id</strong></td><td>INT PK</td><td>Primary key</td></tr>
+        <tr><td>company_id</td><td>INT FK</td><td>&rarr; companies</td></tr>
+        <tr><td>month_num</td><td>INT</td><td>1–12</td></tr>
+        <tr><td>category</td><td>TEXT</td><td>Revenue / Expense type</td></tr>
+        <tr><td>amount</td><td>REAL</td><td>Actual amount ($)</td></tr>
+      </tbody></table>
+    </div>
+
+    <div class="card">
+      <div style="font-size:12px;font-weight:600;color:#185FA5;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;">calendar</div>
+      <table class="schema-table"><thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+        <tr><td><strong>month_num</strong></td><td>INT PK</td><td>Primary key (1–12)</td></tr>
+        <tr><td>month_name</td><td>TEXT</td><td>Jan–Dec</td></tr>
+        <tr><td>quarter</td><td>TEXT</td><td>Q1–Q4</td></tr>
+      </tbody></table>
+    </div>
+
+  </div>
+  <div class="rel">Relationships: actuals.company_id &rarr; companies &nbsp;|&nbsp; budget.company_id &rarr; companies &nbsp;|&nbsp; actuals.month_num &rarr; calendar.month_num</div>
+</div>
+
+<!-- ── QUERIES ── -->
+<div id="panel-queries" class="panel">
+  <div style="display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:start;">
+    <div class="q-list" id="q-list"></div>
+    <div>
+      <div class="sql-block"><pre id="sql-out"></pre></div>
+      <div class="card">
+        <div style="font-size:11px;color:#888;margin-bottom:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;">Results <span id="row-cnt" style="font-weight:400;color:#aaa;"></span></div>
+        <div class="tbl-wrap" style="border:none;"><div id="res-out"></div></div>
+        <div class="insight" id="insight-out"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── DASHBOARD ── -->
+<div id="panel-dashboard" class="panel">
+  <div class="filters">
+    <label>Category:</label>
+    <select id="cat-filter" onchange="renderDash()">
+      <option value="all">All categories</option>
+      <option value="Revenue">Revenue only</option>
+      <option value="expense">Expenses only</option>
+    </select>
+    <label>Quarter:</label>
+    <select id="q-filter" onchange="renderDash()">
+      <option value="all">All quarters</option>
+      <option value="Q1">Q1</option>
+      <option value="Q2">Q2</option>
+      <option value="Q3">Q3</option>
+      <option value="Q4">Q4</option>
+    </select>
+  </div>
+
+  <div class="kpi-grid" id="kpi-cards"></div>
+
+  <div class="legend">
+    <span><span class="legend-dot" style="background:#1F3864;"></span>Budget</span>
+    <span><span class="legend-dot" style="background:#1D9E75;"></span>Actual</span>
+  </div>
+  <div style="position:relative;width:100%;height:280px;margin-bottom:1.5rem;">
+    <canvas id="var-chart" role="img" aria-label="Bar chart comparing monthly budget vs actual amounts"></canvas>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>Month</th><th>Budget</th><th>Actual</th>
+        <th>Variance ($)</th><th>Variance %</th><th>Status</th>
+      </tr></thead>
+      <tbody id="dash-table"></tbody>
+    </table>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  Built by a financial analyst &mdash; portfolio project &mdash;
+  <a href="https://github.com" target="_blank">View on GitHub</a>
+</footer>
+
+<script>
+const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const quarters=['Q1','Q1','Q1','Q2','Q2','Q2','Q3','Q3','Q3','Q4','Q4','Q4'];
+const budRev=[50000,48000,58000,55000,62000,70000,65000,72000,78000,75000,82000,90000];
+const actRev=[52000,45000,61000,57000,65000,72000,68000,74000,80000,77000,85000,92000];
+const budPay=[18000,18000,19000,19000,20000,21000,21000,22000,22000,23000,23000,24000];
+const actPay=[18000,18500,19000,19000,20500,21000,21000,22500,22000,23000,23500,24000];
+const budCOGS=[13000,12000,14500,13500,15500,17500,16500,17500,19500,18500,20500,21500];
+const actCOGS=[12000,11000,14000,13000,15000,17000,16000,17000,19000,18000,20000,21000];
+const budMkt=[4000,3500,5000,4500,5500,6000,5800,6200,6800,6500,7200,7800];
+const actMkt=[4200,3200,5500,4200,6000,5800,6000,6500,7000,6200,7500,8000];
+
+let db, varChart;
+
+function showTab(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.querySelectorAll('.tab').forEach((b,i)=>{
+    if(['schema','queries','dashboard'][i]===name) b.classList.add('active');
+  });
+  if(name==='dashboard') renderDash();
+}
+
+const queries=[
+  {label:'Monthly variance',sub:'Actual vs budget by month',
+   insight:'Revenue beat budget in most months. Payroll ran slightly over in Feb and Aug due to overtime.',
+   sql:`-- Monthly budget vs actual (Revenue)
+SELECT
+  c.month_name          AS month,
+  b.category,
+  b.amount              AS budget,
+  a.amount              AS actual,
+  a.amount - b.amount   AS variance,
+  ROUND((a.amount - b.amount)
+    * 100.0 / b.amount, 1) AS variance_pct
+FROM budget b
+JOIN actuals a
+  ON  b.company_id = a.company_id
+  AND b.month_num  = a.month_num
+  AND b.category   = a.category
+JOIN calendar c
+  ON  b.month_num  = c.month_num
+WHERE b.category = 'Revenue'
+ORDER BY b.month_num;`,
+   run:db=>db.exec(`SELECT c.month_name,b.category,b.amount AS budget,a.amount AS actual,
+     a.amount-b.amount AS variance,ROUND((a.amount-b.amount)*100.0/b.amount,1) AS variance_pct
+     FROM budget b JOIN actuals a ON b.company_id=a.company_id AND b.month_num=a.month_num
+     AND b.category=a.category JOIN calendar c ON b.month_num=c.month_num
+     WHERE b.category='Revenue' ORDER BY b.month_num`)[0]},
+
+  {label:'Quarterly rollup',sub:'Budget vs actual by quarter',
+   insight:'Q3 had the strongest beat — actual revenue exceeded budget by $9k. Q1 missed slightly due to a weak February.',
+   sql:`-- Quarterly budget vs actual rollup
+SELECT
+  cal.quarter,
+  b.category,
+  SUM(b.amount)                    AS total_budget,
+  SUM(a.amount)                    AS total_actual,
+  SUM(a.amount) - SUM(b.amount)    AS variance,
+  ROUND((SUM(a.amount) - SUM(b.amount))
+    * 100.0 / SUM(b.amount), 1)   AS variance_pct
+FROM budget b
+JOIN actuals a
+  ON  b.company_id = a.company_id
+  AND b.month_num  = a.month_num
+  AND b.category   = a.category
+JOIN calendar cal
+  ON  b.month_num  = cal.month_num
+GROUP BY cal.quarter, b.category
+ORDER BY cal.quarter, b.category;`,
+   run:db=>db.exec(`SELECT cal.quarter,b.category,SUM(b.amount) AS total_budget,
+     SUM(a.amount) AS total_actual,SUM(a.amount)-SUM(b.amount) AS variance,
+     ROUND((SUM(a.amount)-SUM(b.amount))*100.0/SUM(b.amount),1) AS variance_pct
+     FROM budget b JOIN actuals a ON b.company_id=a.company_id AND b.month_num=a.month_num
+     AND b.category=a.category JOIN calendar cal ON b.month_num=cal.month_num
+     GROUP BY cal.quarter,b.category ORDER BY cal.quarter,b.category`)[0]},
+
+  {label:'Full-year summary',sub:'All categories, FY totals',
+   insight:'Revenue beat budget by $12k full year. COGS came in under — good cost control. Marketing overspent by $5.4k.',
+   sql:`-- Full-year budget vs actual by category
+SELECT
+  b.category,
+  SUM(b.amount)                    AS fy_budget,
+  SUM(a.amount)                    AS fy_actual,
+  SUM(a.amount) - SUM(b.amount)    AS fy_variance,
+  ROUND((SUM(a.amount) - SUM(b.amount))
+    * 100.0 / SUM(b.amount), 1)   AS fy_variance_pct,
+  CASE
+    WHEN b.category = 'Revenue'
+     AND SUM(a.amount) >= SUM(b.amount) THEN 'Favorable'
+    WHEN b.category != 'Revenue'
+     AND SUM(a.amount) <= SUM(b.amount) THEN 'Favorable'
+    ELSE 'Unfavorable'
+  END                              AS status
+FROM budget b
+JOIN actuals a
+  ON  b.company_id = a.company_id
+  AND b.month_num  = a.month_num
+  AND b.category   = a.category
+GROUP BY b.category
+ORDER BY ABS(SUM(a.amount) - SUM(b.amount)) DESC;`,
+   run:db=>db.exec(`SELECT b.category,SUM(b.amount) AS fy_budget,SUM(a.amount) AS fy_actual,
+     SUM(a.amount)-SUM(b.amount) AS fy_variance,
+     ROUND((SUM(a.amount)-SUM(b.amount))*100.0/SUM(b.amount),1) AS fy_var_pct,
+     CASE WHEN b.category='Revenue' AND SUM(a.amount)>=SUM(b.amount) THEN 'Favorable'
+          WHEN b.category!='Revenue' AND SUM(a.amount)<=SUM(b.amount) THEN 'Favorable'
+          ELSE 'Unfavorable' END AS status
+     FROM budget b JOIN actuals a ON b.company_id=a.company_id AND b.month_num=a.month_num
+     AND b.category=a.category GROUP BY b.category
+     ORDER BY ABS(SUM(a.amount)-SUM(b.amount)) DESC`)[0]},
+
+  {label:'Months over budget',sub:'HAVING clause filter',
+   insight:'Marketing overspent in 8 of 12 months. Flagging for management review — may need budget reallocation.',
+   sql:`-- Months where actuals exceeded budget by >2%
+SELECT
+  c.month_name,
+  b.category,
+  b.amount                         AS budget,
+  a.amount                         AS actual,
+  ROUND((a.amount - b.amount)
+    * 100.0 / b.amount, 1)        AS overage_pct
+FROM budget b
+JOIN actuals a
+  ON  b.company_id = a.company_id
+  AND b.month_num  = a.month_num
+  AND b.category   = a.category
+JOIN calendar c
+  ON  b.month_num  = c.month_num
+WHERE b.category != 'Revenue'
+  AND a.amount > b.amount * 1.02
+ORDER BY overage_pct DESC;`,
+   run:db=>db.exec(`SELECT c.month_name,b.category,b.amount AS budget,a.amount AS actual,
+     ROUND((a.amount-b.amount)*100.0/b.amount,1) AS overage_pct
+     FROM budget b JOIN actuals a ON b.company_id=a.company_id AND b.month_num=a.month_num
+     AND b.category=a.category JOIN calendar c ON b.month_num=c.month_num
+     WHERE b.category!='Revenue' AND a.amount>b.amount*1.02
+     ORDER BY overage_pct DESC`)[0]},
+
+  {label:'YTD running variance',sub:'Window function cumulative sum',
+   insight:'Revenue was behind YTD budget through February, caught up in March, and stayed ahead the rest of the year.',
+   sql:`-- Cumulative YTD budget vs actual (revenue)
+SELECT
+  c.month_name,
+  SUM(b.amount) OVER (
+    ORDER BY b.month_num
+    ROWS UNBOUNDED PRECEDING)     AS ytd_budget,
+  SUM(a.amount) OVER (
+    ORDER BY a.month_num
+    ROWS UNBOUNDED PRECEDING)     AS ytd_actual,
+  SUM(a.amount) OVER (
+    ORDER BY a.month_num
+    ROWS UNBOUNDED PRECEDING)
+  - SUM(b.amount) OVER (
+    ORDER BY b.month_num
+    ROWS UNBOUNDED PRECEDING)     AS ytd_variance
+FROM budget b
+JOIN actuals a
+  ON  b.month_num = a.month_num
+  AND b.category  = a.category
+JOIN calendar c
+  ON  b.month_num = c.month_num
+WHERE b.category = 'Revenue'
+ORDER BY b.month_num;`,
+   run:db=>db.exec(`SELECT c.month_name,
+     SUM(b.amount) OVER (ORDER BY b.month_num ROWS UNBOUNDED PRECEDING) AS ytd_budget,
+     SUM(a.amount) OVER (ORDER BY a.month_num ROWS UNBOUNDED PRECEDING) AS ytd_actual,
+     SUM(a.amount) OVER (ORDER BY a.month_num ROWS UNBOUNDED PRECEDING)
+     -SUM(b.amount) OVER (ORDER BY b.month_num ROWS UNBOUNDED PRECEDING) AS ytd_variance
+     FROM budget b JOIN actuals a ON b.month_num=a.month_num AND b.category=a.category
+     JOIN calendar c ON b.month_num=c.month_num
+     WHERE b.category='Revenue' ORDER BY b.month_num`)[0]}
+];
+
+function hl(sql){
+  const kws=['SELECT','FROM','WHERE','JOIN','ON','GROUP BY','ORDER BY','HAVING','CASE','WHEN','THEN','ELSE','END','AS','BY','OVER','PARTITION','SUM','COUNT','MAX','MIN','AVG','ROUND','AND','OR','NOT','ROWS','UNBOUNDED','PRECEDING','BETWEEN','DESC','ASC'];
+  let s=sql.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  s=s.replace(/(--[^\n]*)/g,'<span class="cm">$1</span>');
+  kws.forEach(k=>{s=s.replace(new RegExp(`\\b(${k})\\b`,'g'),`<span class="kw">$1</span>`);});
+  s=s.replace(/\b(\d+\.?\d*)\b/g,'<span class="num">$1</span>');
+  s=s.replace(/'([^']*)'/g,"<span class='str'>'$1'</span>");
+  return s;
+}
+
+function fmtVal(v,col){
+  if(v===null||v===undefined) return '<span style="color:#aaa">—</span>';
+  const c=String(col).toLowerCase();
+  if(typeof v==='number'){
+    if(c.includes('pct')||c.includes('overage')){
+      const pos=v>=0,color=pos?'#085041':'#7a1f1f',bg=pos?'#e1f5ee':'#fce8e8';
+      return `<span class="badge" style="background:${bg};color:${color}">${v>0?'+':''}${v}%</span>`;
+    }
+    if(c.includes('budget')||c.includes('actual')||c.includes('variance')||c.includes('ytd')){
+      const color=v<0?'#b00000':'#1a1a1a';
+      return `<span style="color:${color}">${v<0?'(':''}$${Math.abs(v).toLocaleString()}${v<0?')':''}</span>`;
+    }
+  }
+  if(String(v)==='Favorable') return `<span class="badge pos">Favorable</span>`;
+  if(String(v)==='Unfavorable') return `<span class="badge neg">Unfavorable</span>`;
+  return String(v);
+}
+
+function renderTable(r){
+  if(!r) return '<p style="color:#888;font-size:13px;padding:8px 0;">No results</p>';
+  let h='<table><thead><tr>'+r.columns.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody>';
+  r.values.forEach(row=>{h+='<tr>'+row.map((v,i)=>`<td>${fmtVal(v,r.columns[i])}</td>`).join('')+'</tr>';});
+  return h+'</tbody></table>';
+}
+
+function buildQueryList(){
+  const list=document.getElementById('q-list');
+  queries.forEach((q,i)=>{
+    const btn=document.createElement('button');
+    btn.className='q-btn'+(i===0?' active':'');
+    btn.innerHTML=`<span class="ql">${q.label}</span><span class="qs">${q.sub}</span>`;
+    btn.onclick=()=>runQuery(i);
+    list.appendChild(btn);
+  });
+}
+
+function runQuery(idx){
+  document.querySelectorAll('.q-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  const q=queries[idx];
+  document.getElementById('sql-out').innerHTML=hl(q.sql);
+  try{
+    const r=q.run(db);
+    const rows=r?r.values.length:0;
+    document.getElementById('row-cnt').textContent=`— ${rows} row${rows!==1?'s':''}`;
+    document.getElementById('res-out').innerHTML=renderTable(r);
+  }catch(e){
+    document.getElementById('res-out').innerHTML=`<p style="color:#b00000">${e.message}</p>`;
+  }
+  document.getElementById('insight-out').textContent=q.insight;
+}
+
+function getFiltered(){
+  const catF=document.getElementById('cat-filter').value;
+  const qF=document.getElementById('q-filter').value;
+  const bud=[],act=[],labs=[];
+  for(let i=0;i<12;i++){
+    if(qF!=='all'&&quarters[i]!==qF) continue;
+    let b=0,a=0;
+    if(catF==='all'||catF==='Revenue'){b+=budRev[i];a+=actRev[i];}
+    if(catF==='all'||catF==='expense'){b+=budPay[i]+budCOGS[i]+budMkt[i];a+=actPay[i]+actCOGS[i]+actMkt[i];}
+    bud.push(b);act.push(a);labs.push(months[i]);
+  }
+  return{bud,act,labs};
+}
+
+function renderDash(){
+  const{bud,act,labs}=getFiltered();
+  const tBud=bud.reduce((s,v)=>s+v,0);
+  const tAct=act.reduce((s,v)=>s+v,0);
+  const tVar=tAct-tBud;
+  const vPct=tBud?((tVar/tBud)*100).toFixed(1):0;
+  const fav=tVar>=0;
+
+  document.getElementById('kpi-cards').innerHTML=`
+    <div class="kpi"><div class="kpi-label">Total budget</div><div class="kpi-value">$${(tBud/1000).toFixed(0)}k</div></div>
+    <div class="kpi"><div class="kpi-label">Total actual</div><div class="kpi-value">$${(tAct/1000).toFixed(0)}k</div></div>
+    <div class="kpi"><div class="kpi-label">Variance</div><div class="kpi-value" style="color:${fav?'#1D9E75':'#b00000'}">${tVar>=0?'+':''}$${Math.abs(Math.round(tVar/1000))}k</div></div>
+    <div class="kpi"><div class="kpi-label">Variance %</div><div class="kpi-value" style="color:${fav?'#1D9E75':'#b00000'}">${tVar>=0?'+':''}${vPct}%</div></div>`;
+
+  if(varChart) varChart.destroy();
+  varChart=new Chart(document.getElementById('var-chart'),{
+    type:'bar',
+    data:{labels:labs,datasets:[
+      {label:'Budget',data:bud,backgroundColor:'#1F3864',borderRadius:3},
+      {label:'Actual',data:act,backgroundColor:'#1D9E75',borderRadius:3}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': $'+ctx.parsed.y.toLocaleString()}}},
+      scales:{
+        x:{ticks:{font:{size:11},autoSkip:false,maxRotation:0},grid:{display:false}},
+        y:{ticks:{font:{size:11},callback:v=>'$'+(v/1000)+'k'},grid:{color:'rgba(0,0,0,0.06)'}}
+      }}
+  });
+
+  const tbody=document.getElementById('dash-table');
+  tbody.innerHTML='';
+  labs.forEach((m,i)=>{
+    const v=act[i]-bud[i],vp=bud[i]?((v/bud[i])*100).toFixed(1):0,fv=v>=0;
+    tbody.innerHTML+=`<tr>
+      <td><strong>${m}</strong></td>
+      <td>$${bud[i].toLocaleString()}</td>
+      <td>$${act[i].toLocaleString()}</td>
+      <td style="color:${fv?'#1D9E75':'#b00000'};font-weight:500;">${v>=0?'+':''}$${Math.abs(v).toLocaleString()}</td>
+      <td><span class="badge ${fv?'pos':'neg'}">${v>=0?'+':''}${vp}%</span></td>
+      <td><span class="badge ${fv?'pos':'neg'}">${fv?'Beat':'Missed'}</span></td>
+    </tr>`;
+  });
+}
+
+initSqlJs({locateFile:f=>`https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}`}).then(SQL=>{
+  db=new SQL.Database();
+  db.run(`CREATE TABLE companies(company_id INT PRIMARY KEY,name TEXT,industry TEXT,fiscal_year INT)`);
+  db.run(`INSERT INTO companies VALUES(1,'Acme Co.','Technology',2024)`);
+  db.run(`CREATE TABLE calendar(month_num INT PRIMARY KEY,month_name TEXT,quarter TEXT)`);
+  months.forEach((m,i)=>db.run(`INSERT INTO calendar VALUES(${i+1},'${m}','${quarters[i]}')`));
+  db.run(`CREATE TABLE budget(budget_id INT PRIMARY KEY,company_id INT,month_num INT,category TEXT,amount REAL)`);
+  db.run(`CREATE TABLE actuals(actual_id INT PRIMARY KEY,company_id INT,month_num INT,category TEXT,amount REAL)`);
+  let bid=1,aid=1;
+  for(let i=0;i<12;i++){
+    const m=i+1;
+    [[budRev[i],actRev[i],'Revenue'],[budPay[i],actPay[i],'Payroll'],[budCOGS[i],actCOGS[i],'COGS'],[budMkt[i],actMkt[i],'Marketing']].forEach(([b,a,cat])=>{
+      db.run(`INSERT INTO budget VALUES(${bid++},1,${m},'${cat}',${b})`);
+      db.run(`INSERT INTO actuals VALUES(${aid++},1,${m},'${cat}',${a})`);
+    });
+  }
+  buildQueryList();
+  runQuery(0);
+});
+</script>
+</body>
+</html>
