@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amazon Music — Customer Growth Forecast FY2025E–FY2027E</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0F1111;--surface:#1A1A1A;--surface2:#232F3E;--surface3:#2D3748;
+  --border:#3D4B5C;--border2:#4A5568;
+  --orange:#FF9900;--orange-dim:rgba(255,153,0,0.12);--orange-border:rgba(255,153,0,0.3);
+  --orange-dark:#CC7A00;--orange-light:#FFB84D;
+  --text:#F0F0F0;--text-mid:#A0ADB8;--text-dim:#6B7A8D;
+  --green:#3CB371;--red:#E05555;--blue:#4A9EE0;--teal:#38B2AC;
+  --navy:#131921;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6}
+
+/* Amazon-style header */
+header{background:var(--navy);border-bottom:1px solid var(--orange);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:14px}
+.amzn-logo{display:flex;flex-direction:column;gap:1px}
+.amzn-text{font-size:20px;font-weight:700;color:var(--text);letter-spacing:-0.01em;font-family:'Amazon Ember',Arial,sans-serif}
+.amzn-text span{color:var(--orange)}
+.amzn-sub{font-size:10px;color:var(--orange);letter-spacing:0.15em;text-transform:uppercase;margin-top:-2px}
+.hdr-right{display:flex;align-items:center;gap:12px}
+.hdr-badge{background:var(--orange-dim);border:1px solid var(--orange-border);color:var(--orange);border-radius:4px;padding:4px 10px;font-size:11px;font-weight:500;letter-spacing:0.06em}
+
+/* Amazon-style nav bar */
+.subnav{background:var(--surface2);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;gap:0;overflow-x:auto}
+.tab{padding:12px 18px;font-size:12px;letter-spacing:0.07em;text-transform:uppercase;border:none;background:transparent;cursor:pointer;color:var(--text-dim);border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;transition:all 0.2s;white-space:nowrap}
+.tab:hover{color:var(--text-mid);background:rgba(255,255,255,0.04)}
+.tab.active{color:var(--orange);border-bottom-color:var(--orange)}
+.panel{display:none}.panel.active{display:block}
+
+/* Main layout */
+main{max-width:1200px;margin:0 auto;padding:2rem}
+
+/* Amazon-style metric cards */
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:2rem}
+.metric-card{background:var(--surface);padding:1.25rem 1.5rem}
+.mc-label{font-size:11px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+.mc-value{font-size:24px;font-weight:300;color:var(--text);letter-spacing:-0.01em}
+.mc-sub{font-size:12px;margin-top:4px}
+
+/* Chart cards */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:2rem}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.5rem}
+.chart-card.full{grid-column:1/-1}
+.cc-label{font-size:11px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px}
+.cc-sub{font-size:13px;color:var(--text-mid);margin-bottom:1.25rem;line-height:1.5}
+.cw{position:relative;width:100%}
+
+/* Assumptions panel */
+.assumption-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:2rem}
+.assump-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.25rem}
+.assump-title{font-size:11px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.assump-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.assump-label{font-size:13px;color:var(--text-mid);flex:1;padding-right:12px}
+.assump-input{background:var(--surface2);border:1px solid var(--border2);border-radius:4px;color:var(--orange);font-size:13px;font-weight:600;padding:5px 10px;width:90px;text-align:right;font-family:inherit;transition:border-color 0.2s}
+.assump-input:focus{outline:none;border-color:var(--orange)}
+.assump-input:hover{border-color:var(--orange-border)}
+.apply-btn{background:var(--orange);color:#000;border:none;border-radius:4px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.15s;display:flex;align-items:center;gap:8px}
+.apply-btn:hover{background:var(--orange-light)}
+
+/* Scenario panel */
+.scenario-tabs{display:flex;gap:8px;margin-bottom:1.5rem}
+.scen-btn{padding:8px 20px;border-radius:4px;border:1px solid var(--border2);background:var(--surface);cursor:pointer;font-size:13px;color:var(--text-mid);font-family:inherit;transition:all 0.15s}
+.scen-btn.active{background:var(--orange);color:#000;border-color:var(--orange);font-weight:600}
+.scen-btn:hover:not(.active){border-color:var(--orange-border);color:var(--text)}
+
+/* Table */
+.tbl-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:2rem}
+.tbl-hdr{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.tbl-hdr h3{font-size:14px;font-weight:500}
+.tbl-hdr p{font-size:12px;color:var(--text-dim);margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--surface2);color:var(--text-dim);font-weight:400;padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;font-size:11px;letter-spacing:0.07em;text-transform:uppercase}
+td{padding:9px 16px;border-bottom:1px solid var(--surface2);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500}
+.pos{background:rgba(60,179,113,0.15);color:#3CB371}
+.neg{background:rgba(224,85,85,0.15);color:#E05555}
+.neu{background:var(--surface2);color:var(--text-dim)}
+.warn{background:rgba(255,153,0,0.15);color:var(--orange)}
+
+/* Variance tracker */
+.variance-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:2rem}
+.var-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.25rem}
+.var-metric{font-size:13px;font-weight:500;margin-bottom:12px;color:var(--text)}
+.var-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px}
+.var-label{color:var(--text-dim)}
+.var-input{background:var(--surface2);border:1px solid var(--border2);border-radius:3px;color:var(--orange);font-size:12px;padding:3px 8px;width:80px;text-align:right;font-family:inherit}
+.var-input:focus{outline:none;border-color:var(--orange)}
+.var-result{font-weight:600}
+.alert-flag{font-size:11px;font-weight:600;padding:3px 8px;border-radius:3px;margin-top:8px;text-align:center}
+.alert-ok{background:rgba(60,179,113,0.15);color:#3CB371}
+.alert-warn{background:rgba(255,153,0,0.15);color:var(--orange)}
+
+/* Legend */
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:10px;font-size:12px;color:var(--text-mid)}
+.ldot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:middle}
+
+/* Insight boxes */
+.insight-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:2rem}
+.ibox{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:0 8px 8px 0;padding:1.25rem}
+.ibox.risk{border-left-color:var(--red)}
+.ibox.opp{border-left-color:var(--green)}
+.ititle{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--orange);margin-bottom:8px}
+.ibox.risk .ititle{color:var(--red)}
+.ibox.opp .ititle{color:var(--green)}
+.itext{font-size:13px;color:var(--text-mid);line-height:1.65}
+
+footer{border-top:1px solid var(--border);padding:1.5rem 2rem;font-size:12px;color:var(--text-dim);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;background:var(--navy)}
+footer a{color:var(--orange);text-decoration:none}
+
+@media(max-width:768px){
+  .chart-grid{grid-template-columns:1fr}
+  .chart-card.full{grid-column:1}
+  main{padding:1.25rem}
+  .subnav{padding:0 1rem}
+  header{padding:0 1rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="amzn-logo">
+      <div class="amzn-text">amazon<span>music</span></div>
+      <div class="amzn-sub">Financial Planning &amp; Analysis</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <span class="hdr-badge">FY2025E–FY2027E</span>
+    <span class="hdr-badge">Customer Growth Forecast</span>
+  </div>
+</header>
+
+<div class="subnav">
+  <button class="tab active" onclick="showTab('forecast')">Forecast</button>
+  <button class="tab" onclick="showTab('assumptions')">Assumptions</button>
+  <button class="tab" onclick="showTab('scenarios')">Scenario Analysis</button>
+  <button class="tab" onclick="showTab('variance')">Variance Tracker</button>
+  <button class="tab" onclick="showTab('insights')">Analyst Insights</button>
+</div>
+
+<!-- ══ FORECAST ══ -->
+<div id="panel-forecast" class="panel active">
+<main>
+  <div id="forecast-kpis" class="metric-grid"></div>
+
+  <div class="chart-grid">
+    <div class="chart-card full">
+      <div class="cc-label">Subscriber growth trajectory</div>
+      <div class="cc-sub">Total MAUs vs Paid Subscribers (millions) | FY2020–FY2027E — shaded area = forecast period</div>
+      <div class="legend">
+        <span><span class="ldot" style="background:#FF9900"></span>Total MAUs</span>
+        <span><span class="ldot" style="background:#4A9EE0"></span>Paid Subscribers</span>
+        <span><span class="ldot" style="background:#6B7A8D;opacity:0.4"></span>Forecast period</span>
+      </div>
+      <div class="cw" style="height:300px"><canvas id="subChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="cc-label">Revenue forecast ($B)</div>
+      <div class="cc-sub">Base case revenue projection — driven by ARPU growth and subscriber mix</div>
+      <div class="cw" style="height:250px"><canvas id="revChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="cc-label">Unit economics trend</div>
+      <div class="cc-sub">LTV/CAC ratio and gross margin progression FY2020–FY2027E</div>
+      <div class="cw" style="height:250px"><canvas id="unitChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="tbl-card">
+    <div class="tbl-hdr"><div><h3>Full forecast detail</h3><p>FY2020 actuals/estimates · FY2025E–FY2027E projections · Sources: MIDiA Research, industry reports</p></div></div>
+    <div style="overflow-x:auto"><table id="forecast-table"></table></div>
+  </div>
+</main>
+</div>
+
+<!-- ══ ASSUMPTIONS ══ -->
+<div id="panel-assumptions" class="panel">
+<main>
+  <div style="background:var(--orange-dim);border:1px solid var(--orange-border);border-radius:8px;padding:14px 18px;margin-bottom:1.5rem;font-size:13px;color:var(--text-mid)">
+    <strong style="color:var(--orange)">Interactive model</strong> — adjust any assumption below and click <strong style="color:var(--orange)">Apply Changes</strong> to instantly update all forecasts and charts.
+  </div>
+
+  <div class="assumption-grid">
+    <div class="assump-card">
+      <div class="assump-title">Growth Assumptions</div>
+      <div class="assump-row"><span class="assump-label">MAU growth rate FY25</span><input class="assump-input" id="a-mau25" value="8.0" type="number" step="0.5">%</div>
+      <div class="assump-row"><span class="assump-label">MAU growth rate FY26</span><input class="assump-input" id="a-mau26" value="9.0" type="number" step="0.5">%</div>
+      <div class="assump-row"><span class="assump-label">MAU growth rate FY27</span><input class="assump-input" id="a-mau27" value="8.0" type="number" step="0.5">%</div>
+      <div class="assump-row"><span class="assump-label">Paid conversion rate FY25</span><input class="assump-input" id="a-conv25" value="61.0" type="number" step="0.5">%</div>
+      <div class="assump-row"><span class="assump-label">Paid conversion rate FY27</span><input class="assump-input" id="a-conv27" value="65.0" type="number" step="0.5">%</div>
+    </div>
+    <div class="assump-card">
+      <div class="assump-title">Revenue & Margin</div>
+      <div class="assump-row"><span class="assump-label">Revenue growth rate FY25</span><input class="assump-input" id="a-rev25" value="15.0" type="number" step="0.5">%</div>
+      <div class="assump-row"><span class="assump-label">Revenue growth rate FY26</span><input class="assump-input" id="a-rev26" value="16.0" type="number" step="0.5">%</div>
+      <div class="assump-row"><span class="assump-label">Revenue growth rate FY27</span><input class="assump-input" id="a-rev27" value="15.0" type="number" step="0.5">%</div>
+      <div class="assump-row"><span class="assump-label">Gross margin FY25</span><input class="assump-input" id="a-gm25" value="28.0" type="number" step="0.5">%</div>
+      <div class="assump-row"><span class="assump-label">Gross margin FY27</span><input class="assump-input" id="a-gm27" value="32.0" type="number" step="0.5">%</div>
+    </div>
+    <div class="assump-card">
+      <div class="assump-title">Unit Economics</div>
+      <div class="assump-row"><span class="assump-label">ARPU — Paid tier FY25 ($)</span><input class="assump-input" id="a-arpu25" value="72.0" type="number" step="1">$</div>
+      <div class="assump-row"><span class="assump-label">ARPU — Paid tier FY27 ($)</span><input class="assump-input" id="a-arpu27" value="79.4" type="number" step="1">$</div>
+      <div class="assump-row"><span class="assump-label">Annual churn rate FY25</span><input class="assump-input" id="a-churn25" value="6.6" type="number" step="0.1">%</div>
+      <div class="assump-row"><span class="assump-label">Annual churn rate FY27</span><input class="assump-input" id="a-churn27" value="6.0" type="number" step="0.1">%</div>
+      <div class="assump-row"><span class="assump-label">Est. CAC FY25 ($)</span><input class="assump-input" id="a-cac25" value="35.0" type="number" step="1">$</div>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;margin-bottom:2rem">
+    <button class="apply-btn" onclick="applyAssumptions()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 3L6 10l-3-3"/></svg>
+      Apply Changes
+    </button>
+  </div>
+
+  <div class="tbl-card">
+    <div class="tbl-hdr"><div><h3>Current assumptions summary</h3><p>All inputs used in the base case model</p></div></div>
+    <div style="overflow-x:auto"><table id="assump-table"></table></div>
+  </div>
+</main>
+</div>
+
+<!-- ══ SCENARIOS ══ -->
+<div id="panel-scenarios" class="panel">
+<main>
+  <div class="scenario-tabs">
+    <button class="scen-btn active" onclick="showScenario('all')">All scenarios</button>
+    <button class="scen-btn" onclick="showScenario('bull')">Bull case</button>
+    <button class="scen-btn" onclick="showScenario('base')">Base case</button>
+    <button class="scen-btn" onclick="showScenario('bear')">Bear case</button>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card full">
+      <div class="cc-label">Revenue scenarios ($B)</div>
+      <div class="cc-sub">Bull / Base / Bear revenue projections FY2025E–FY2027E — historical actuals shown for context</div>
+      <div class="legend">
+        <span><span class="ldot" style="background:#3CB371"></span>Bull case</span>
+        <span><span class="ldot" style="background:#FF9900"></span>Base case</span>
+        <span><span class="ldot" style="background:#E05555"></span>Bear case</span>
+      </div>
+      <div class="cw" style="height:300px"><canvas id="scenRevChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="cc-label">MAU scenarios (M)</div>
+      <div class="cc-sub">Total user base under each scenario</div>
+      <div class="cw" style="height:250px"><canvas id="scenMAUChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="cc-label">Gross margin scenarios (%)</div>
+      <div class="cc-sub">Margin expansion trajectory differs materially across cases</div>
+      <div class="cw" style="height:250px"><canvas id="scenGMChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="tbl-card">
+    <div class="tbl-hdr"><div><h3>Scenario comparison — FY2027E</h3><p>Key metrics under each case</p></div></div>
+    <div style="overflow-x:auto"><table id="scen-table"></table></div>
+  </div>
+
+  <div class="insight-row" style="margin-top:1.5rem">
+    <div class="ibox opp">
+      <div class="ititle">Bull case drivers</div>
+      <div class="itext">Prime bundle conversion accelerates (+3pp MAU growth). Price increases stick with no material churn. Ad market rebounds strongly. Amazon expands into 5 new markets. Operating leverage kicks in as royalty rates stabilize at scale.</div>
+    </div>
+    <div class="ibox">
+      <div class="ititle">Base case assumptions</div>
+      <div class="itext">Steady Prime-driven growth (8–9% YoY). Gradual paid conversion improvement. ARPU grows ~5% YoY. Ad revenue grows in line with digital ad market. Churn improves slightly from Prime lock-in effect. Consistent with FY2024 trajectory.</div>
+    </div>
+    <div class="ibox risk">
+      <div class="ititle">Bear case risks</div>
+      <div class="itext">MAU growth slows to 5–6% as Prime decelerates in mature markets. Spotify/Apple Music pressure limits conversion. Ad market weakness crimps ad-supported revenue. Churn ticks up during macro downturn as users cancel discretionary subscriptions.</div>
+    </div>
+  </div>
+</main>
+</div>
+
+<!-- ══ VARIANCE TRACKER ══ -->
+<div id="panel-variance" class="panel">
+<main>
+  <div style="background:var(--orange-dim);border:1px solid var(--orange-border);border-radius:8px;padding:14px 18px;margin-bottom:1.5rem;font-size:13px;color:var(--text-mid)">
+    <strong style="color:var(--orange)">Controllership tool</strong> — enter actual results as they become available. ⚠ alerts fire automatically when actuals miss forecast by more than 5%.
+  </div>
+
+  <div class="variance-grid" id="variance-cards"></div>
+
+  <div class="tbl-card">
+    <div class="tbl-hdr"><div><h3>Full year FY2025 variance summary</h3><p>Forecast vs actual · alerts flag >5% miss</p></div></div>
+    <div style="overflow-x:auto"><table id="variance-table"></table></div>
+  </div>
+</main>
+</div>
+
+<!-- ══ INSIGHTS ══ -->
+<div id="panel-insights" class="panel">
+<main>
+  <div class="chart-grid">
+    <div class="chart-card full">
+      <div class="cc-label">Amazon Music vs competitors — market share</div>
+      <div class="cc-sub">Streaming music paid subscriber market share estimates FY2024 (MIDiA Research)</div>
+      <div class="cw" style="height:280px"><canvas id="mktShareChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="insight-row">
+    <div class="ibox">
+      <div class="ititle">Prime bundle advantage</div>
+      <div class="itext">Amazon Music's primary moat is Prime bundling — ~240M global Prime subscribers represent a captive acquisition funnel that Spotify and Apple Music cannot replicate. Prime members have structurally lower churn (~6.6% vs ~10% industry average) because cancellation means losing Prime benefits, not just music. This is the most important assumption in the model.</div>
+    </div>
+    <div class="ibox opp">
+      <div class="ititle">ARPU upside opportunity</div>
+      <div class="itext">At ~$72/year, Amazon Music Unlimited's paid ARPU significantly lags Spotify (~$57/year) and Apple Music (~$84/year). The gap vs Apple signals pricing power exists. A $5 ARPU increase to $77 would add ~$350M in annual revenue by FY2027 at projected subscriber levels — the highest-ROI lever in the model.</div>
+    </div>
+    <div class="ibox risk">
+      <div class="ititle">Ad revenue gap</div>
+      <div class="itext">Amazon Music's ad-supported revenue per user (~$8.50/year) lags Spotify's equivalent significantly. Despite Amazon's unrivaled first-party purchase data — the most valuable ad targeting signal in existence — the music platform has not yet monetized this advantage. Closing even half the gap with Spotify would add ~$400M in annual ad revenue.</div>
+    </div>
+    <div class="ibox risk">
+      <div class="ititle">Conversion rate plateau</div>
+      <div class="itext">At ~60% paid conversion (vs Spotify's ~39%), Amazon Music looks highly efficient — but this partially reflects that most users arrive via Prime (already committed). The free-to-paid funnel for standalone Amazon Music Unlimited sign-ups shows slower conversion, suggesting the Prime bundle is doing heavy lifting that isn't replicable in international expansion markets.</div>
+    </div>
+  </div>
+
+  <div class="tbl-card">
+    <div class="tbl-hdr"><div><h3>Competitive benchmarking — FY2024</h3><p>Amazon Music vs Spotify vs Apple Music — key unit economics</p></div></div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Metric</th><th>Amazon Music</th><th>Spotify</th><th>Apple Music</th><th>Amazon advantage?</th></tr></thead>
+        <tbody>
+          <tr><td>Paid Subscribers</td><td>~75M</td><td>263M</td><td>~88M</td><td><span class="badge neg">3rd place</span></td></tr>
+          <tr><td>MAUs (total)</td><td>~75M</td><td>675M</td><td>~88M (paid only)</td><td><span class="badge neg">Smaller funnel</span></td></tr>
+          <tr><td>Annual ARPU (paid)</td><td>~$72</td><td>~$57</td><td>~$84</td><td><span class="badge warn">Mid-range</span></td></tr>
+          <tr><td>Est. annual churn</td><td>~6.6%</td><td>~10%</td><td>~8%</td><td><span class="badge pos">Lowest churn</span></td></tr>
+          <tr><td>Gross margin</td><td>~27%</td><td>30.1%</td><td>N/A (bundled)</td><td><span class="badge neg">Expanding</span></td></tr>
+          <tr><td>User acquisition cost</td><td>~$35 (Prime)</td><td>~$47</td><td>Device bundle</td><td><span class="badge pos">Prime advantage</span></td></tr>
+          <tr><td>Est. LTV/CAC</td><td>~12x</td><td>~12x</td><td>N/A</td><td><span class="badge pos">Comparable</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+</div>
+
+<footer>
+  <span>Amazon Music · Customer Growth Forecast FY2025E–FY2027E · Data: MIDiA Research, industry estimates · FP&A Portfolio — Rachel Lau</span>
+  <a href="https://github.com/lauchel/financial-analyst-portfolio" target="_blank">github.com/lauchel/financial-analyst-portfolio</a>
+</footer>
+
+<script>
+// ── Base data ──────────────────────────────────────────────────────────────
+const HIST_YEARS = ['FY2020','FY2021','FY2022','FY2023','FY2024'];
+const PROJ_YEARS = ['FY2025E','FY2026E','FY2027E'];
+const ALL_YEARS  = [...HIST_YEARS, ...PROJ_YEARS];
+
+const HIST_MAU   = [55, 63, 68, 70, 75];
+const HIST_PAID  = [29, 34, 38, 41, 45];
+const HIST_REV   = [1.55,1.89,2.75,3.33,3.86];
+const HIST_CHURN = [0.080,0.075,0.072,0.070,0.068];
+const HIST_ARPU  = [68.0,70.0,71.5,72.5,73.5];
+const HIST_GM    = [0.24,0.25,0.26,0.27,0.27];
+const HIST_CAC   = [42,40,38,36,35];
+
+// Mutable assumptions (base case)
+let A = {
+  mauGrowth:  [0.08, 0.09, 0.08],
+  convRate:   [0.61, 0.63, 0.65],
+  revGrowth:  [0.15, 0.16, 0.15],
+  grossMargin:[0.28, 0.30, 0.32],
+  arpuPaid:   [72.0, 75.6, 79.4],
+  arpuAd:     [8.5,  9.0,  9.6],
+  churn:      [0.066,0.063,0.060],
+  cac:        [35.0, 34.0, 33.0],
+};
+
+function computeProj() {
+  const mau  = A.mauGrowth.map((g,i)  => Math.round(HIST_MAU.at(-1) * A.mauGrowth.slice(0,i+1).reduce((a,r)=>a*(1+r),1)));
+  const paid = mau.map((m,i) => Math.round(m * A.convRate[i]));
+  const rev  = A.revGrowth.map((g,i)  => +(HIST_REV.at(-1) * A.revGrowth.slice(0,i+1).reduce((a,r)=>a*(1+r),1)).toFixed(2));
+  const gm   = A.grossMargin;
+  const ltv  = A.arpuPaid.map((arpu,i) => +(arpu / A.churn[i]).toFixed(1));
+  const ltvcac = ltv.map((l,i) => +(l/A.cac[i]).toFixed(1));
+  return {mau,paid,rev,gm,ltv,ltvcac};
+}
+
+// Scenario data
+const SCENARIOS = {
+  bull: {mau:[83,93,103], paid:[51,59,67], rev:[4.63,5.65,6.78], gm:[0.30,0.32,0.34], churn:[0.056,0.053,0.050]},
+  base: {mau:[81,88,95],  paid:[49,55,62], rev:[4.44,5.15,5.92], gm:[0.28,0.30,0.32], churn:[0.066,0.063,0.060]},
+  bear: {mau:[79,84,88],  paid:[46,51,55], rev:[4.17,4.54,4.90], gm:[0.26,0.28,0.30], churn:[0.076,0.073,0.070]},
+};
+
+// Variance tracker state
+const VAR_METRICS = [
+  {label:'Total MAUs (M)',      forecast:[20.3,20.5,20.6,20.6], unit:'M', fmt:v=>`${v.toFixed(1)}M`},
+  {label:'Paid Subscribers (M)',forecast:[12.3,12.4,12.4,12.5], unit:'M', fmt:v=>`${v.toFixed(1)}M`},
+  {label:'Revenue ($B)',        forecast:[1.11,1.11,1.11,1.11], unit:'B', fmt:v=>`$${v.toFixed(2)}B`},
+  {label:'Gross Margin',        forecast:[0.28,0.28,0.28,0.28], unit:'%', fmt:v=>`${(v*100).toFixed(1)}%`},
+  {label:'ARPU — Paid ($)',     forecast:[72.0,72.0,72.0,72.0], unit:'$', fmt:v=>`$${v.toFixed(0)}`},
+];
+let varActuals = Array(5).fill(null).map(()=>Array(4).fill(''));
+
+// ── Charts ─────────────────────────────────────────────────────────────────
+let charts = {};
+
+function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
+
+function buildForecastCharts() {
+  const p = computeProj();
+
+  destroyChart('subChart');
+  charts.subChart = new Chart(document.getElementById('subChart'),{
+    type:'line',
+    data:{labels:ALL_YEARS,
+      datasets:[
+        {label:'Total MAUs',data:[...HIST_MAU,...p.mau],borderColor:'#FF9900',backgroundColor:'rgba(255,153,0,0.06)',tension:0.3,pointRadius:5,fill:true,borderWidth:2,
+          segment:{borderDash:ctx=>ctx.p0DataIndex>=4?[6,3]:undefined}},
+        {label:'Paid Subscribers',data:[...HIST_PAID,...p.paid],borderColor:'#4A9EE0',backgroundColor:'transparent',tension:0.3,pointRadius:5,borderWidth:2,
+          segment:{borderDash:ctx=>ctx.p0DataIndex>=4?[6,3]:undefined}},
+      ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y}M`}}},
+      scales:{x:{ticks:{color:'#6B7A8D',font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{ticks:{color:'#6B7A8D',font:{size:11},callback:v=>`${v}M`},grid:{color:'rgba(255,255,255,0.05)'}}}}
+  });
+
+  destroyChart('revChart');
+  charts.revChart = new Chart(document.getElementById('revChart'),{
+    type:'bar',
+    data:{labels:ALL_YEARS,
+      datasets:[{data:[...HIST_REV,...p.rev],
+        backgroundColor:ALL_YEARS.map((_,i)=>i<5?'rgba(255,153,0,0.6)':'#FF9900'),borderRadius:3}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` $${c.parsed.y.toFixed(2)}B`}}},
+      scales:{x:{ticks:{color:'#6B7A8D',font:{size:11}},grid:{display:false}},
+        y:{ticks:{color:'#6B7A8D',font:{size:11},callback:v=>`$${v}B`},grid:{color:'rgba(255,255,255,0.05)'}}}}
+  });
+
+  destroyChart('unitChart');
+  const allLTVCAC = HIST_ARPU.map((a,i)=>+(a/HIST_CHURN[i]/HIST_CAC[i]).toFixed(1));
+  const allGM = [...HIST_GM.map(v=>+(v*100).toFixed(1)),...p.gm.map(v=>+(v*100).toFixed(1))];
+  charts.unitChart = new Chart(document.getElementById('unitChart'),{
+    type:'line',
+    data:{labels:ALL_YEARS,
+      datasets:[
+        {label:'LTV/CAC (x)',data:[...allLTVCAC,...p.ltvcac],borderColor:'#3CB371',backgroundColor:'transparent',tension:0.3,pointRadius:4,yAxisID:'y',
+          segment:{borderDash:ctx=>ctx.p0DataIndex>=4?[5,3]:undefined}},
+        {label:'Gross Margin %',data:allGM,borderColor:'#4A9EE0',backgroundColor:'transparent',tension:0.3,pointRadius:4,yAxisID:'y2',
+          segment:{borderDash:ctx=>ctx.p0DataIndex>=4?[5,3]:undefined}},
+      ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.datasetIndex===0?` LTV/CAC: ${c.parsed.y}x`:` GM: ${c.parsed.y}%`}}},
+      scales:{
+        x:{ticks:{color:'#6B7A8D',font:{size:11}},grid:{display:false}},
+        y:{position:'left',ticks:{color:'#3CB371',font:{size:11},callback:v=>`${v}x`},grid:{color:'rgba(255,255,255,0.05)'}},
+        y2:{position:'right',ticks:{color:'#4A9EE0',font:{size:11},callback:v=>`${v}%`},grid:{display:false}}
+      }}
+  });
+}
+
+function buildScenarioCharts(){
+  destroyChart('scenRevChart');
+  charts.scenRevChart = new Chart(document.getElementById('scenRevChart'),{
+    type:'line',
+    data:{labels:ALL_YEARS,datasets:[
+      {label:'Bull',data:[...HIST_REV,...SCENARIOS.bull.rev],borderColor:'#3CB371',backgroundColor:'rgba(60,179,113,0.06)',tension:0.3,pointRadius:4,fill:false,borderWidth:2,
+        segment:{borderDash:ctx=>ctx.p0DataIndex>=4?[6,3]:undefined}},
+      {label:'Base',data:[...HIST_REV,...SCENARIOS.base.rev],borderColor:'#FF9900',backgroundColor:'rgba(255,153,0,0.06)',tension:0.3,pointRadius:4,fill:false,borderWidth:2,
+        segment:{borderDash:ctx=>ctx.p0DataIndex>=4?[6,3]:undefined}},
+      {label:'Bear',data:[...HIST_REV,...SCENARIOS.bear.rev],borderColor:'#E05555',backgroundColor:'rgba(224,85,85,0.06)',tension:0.3,pointRadius:4,fill:false,borderWidth:2,
+        segment:{borderDash:ctx=>ctx.p0DataIndex>=4?[6,3]:undefined}},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: $${c.parsed.y.toFixed(2)}B`}}},
+      scales:{x:{ticks:{color:'#6B7A8D',font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{ticks:{color:'#6B7A8D',font:{size:11},callback:v=>`$${v}B`},grid:{color:'rgba(255,255,255,0.05)'}}}}
+  });
+
+  destroyChart('scenMAUChart');
+  charts.scenMAUChart = new Chart(document.getElementById('scenMAUChart'),{
+    type:'bar',data:{labels:PROJ_YEARS,datasets:[
+      {label:'Bull',data:SCENARIOS.bull.mau,backgroundColor:'rgba(60,179,113,0.7)',borderRadius:3},
+      {label:'Base',data:SCENARIOS.base.mau,backgroundColor:'rgba(255,153,0,0.7)',borderRadius:3},
+      {label:'Bear',data:SCENARIOS.bear.mau,backgroundColor:'rgba(224,85,85,0.7)',borderRadius:3},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{color:'#6B7A8D',font:{size:11}},grid:{display:false}},
+        y:{ticks:{color:'#6B7A8D',font:{size:11},callback:v=>`${v}M`},grid:{color:'rgba(255,255,255,0.05)'}}}}
+  });
+
+  destroyChart('scenGMChart');
+  charts.scenGMChart = new Chart(document.getElementById('scenGMChart'),{
+    type:'line',data:{labels:PROJ_YEARS,datasets:[
+      {label:'Bull',data:SCENARIOS.bull.gm.map(v=>+(v*100).toFixed(1)),borderColor:'#3CB371',tension:0.3,pointRadius:5},
+      {label:'Base',data:SCENARIOS.base.gm.map(v=>+(v*100).toFixed(1)),borderColor:'#FF9900',tension:0.3,pointRadius:5},
+      {label:'Bear',data:SCENARIOS.bear.gm.map(v=>+(v*100).toFixed(1)),borderColor:'#E05555',tension:0.3,pointRadius:5},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{color:'#6B7A8D',font:{size:11}},grid:{display:false}},
+        y:{min:24,max:36,ticks:{color:'#6B7A8D',font:{size:11},callback:v=>`${v}%`},grid:{color:'rgba(255,255,255,0.05)'}}}}
+  });
+
+  destroyChart('mktShareChart');
+  charts.mktShareChart = new Chart(document.getElementById('mktShareChart'),{
+    type:'doughnut',
+    data:{labels:['Spotify','Apple Music','Amazon Music','YouTube Music','Tencent Music','Others'],
+      datasets:[{data:[31.7,13.7,13.3,8.9,12.4,20.0],
+        backgroundColor:['#1DB954','#FC3C44','#FF9900','#FF0000','#00C3FF','#4A5568'],
+        borderWidth:0,hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+      plugins:{legend:{display:true,position:'right',labels:{color:'#A0ADB8',font:{size:12},padding:12}},
+        tooltip:{callbacks:{label:c=>` ${c.label}: ${c.parsed}%`}}}}
+  });
+}
+
+// ── KPI cards ──────────────────────────────────────────────────────────────
+function buildKPIs(){
+  const p = computeProj();
+  const ltv27 = +(A.arpuPaid[2]/A.churn[2]).toFixed(0);
+  const ltvcac27 = +(ltv27/A.cac[2]).toFixed(1);
+  document.getElementById('forecast-kpis').innerHTML = `
+    <div class="metric-card"><div class="mc-label">MAUs FY2027E</div><div class="mc-value" style="color:var(--orange)">${p.mau[2]}M</div><div class="mc-sub" style="color:var(--green)">▲ vs 75M in FY2024</div></div>
+    <div class="metric-card"><div class="mc-label">Paid subscribers FY2027E</div><div class="mc-value">${p.paid[2]}M</div><div class="mc-sub" style="color:var(--green)">▲ vs 45M in FY2024</div></div>
+    <div class="metric-card"><div class="mc-label">Revenue FY2027E</div><div class="mc-value" style="color:var(--orange)">$${p.rev[2]}B</div><div class="mc-sub" style="color:var(--green)">▲ vs $3.86B in FY2024</div></div>
+    <div class="metric-card"><div class="mc-label">Gross margin FY2027E</div><div class="mc-value">${(p.gm[2]*100).toFixed(0)}%</div><div class="mc-sub" style="color:var(--green)">▲ vs 27% in FY2024</div></div>
+    <div class="metric-card"><div class="mc-label">ARPU FY2027E</div><div class="mc-value">$${A.arpuPaid[2]}</div><div class="mc-sub" style="color:var(--green)">▲ vs $73.50 in FY2024</div></div>
+    <div class="metric-card"><div class="mc-label">LTV/CAC FY2027E</div><div class="mc-value" style="color:var(--green)">${ltvcac27}x</div><div class="mc-sub" style="color:var(--text-dim)">Healthy >3x threshold</div></div>`;
+}
+
+// ── Forecast table ─────────────────────────────────────────────────────────
+function buildForecastTable(){
+  const p = computeProj();
+  const rows = [
+    ['Total MAUs (M)',...HIST_MAU,...p.mau],
+    ['Paid Subscribers (M)',...HIST_PAID,...p.paid],
+    ['Ad-Supported MAUs (M)',...HIST_MAU.map((m,i)=>m-HIST_PAID[i]),...p.mau.map((m,i)=>m-p.paid[i])],
+    ['Conversion Rate',...HIST_PAID.map((p,i)=>+(p/HIST_MAU[i]*100).toFixed(1)+'%'),...p.paid.map((pd,i)=>+(pd/p.mau[i]*100).toFixed(1)+'%')],
+    ['Annual Churn',...HIST_CHURN.map(v=>+(v*100).toFixed(1)+'%'),...A.churn.map(v=>+(v*100).toFixed(1)+'%')],
+    ['Revenue ($B)',...HIST_REV.map(v=>'$'+v.toFixed(2)),...p.rev.map(v=>'$'+v.toFixed(2))],
+    ['Gross Margin',...HIST_GM.map(v=>+(v*100).toFixed(0)+'%'),...p.gm.map(v=>+(v*100).toFixed(0)+'%')],
+    ['ARPU — Paid ($)',...HIST_ARPU.map(v=>'$'+v.toFixed(0)),...A.arpuPaid.map(v=>'$'+v.toFixed(0))],
+    ['LTV — Paid ($)',...HIST_ARPU.map((a,i)=>'$'+Math.round(a/HIST_CHURN[i])),...A.arpuPaid.map((a,i)=>'$'+Math.round(a/A.churn[i]))],
+  ];
+  let h='<thead><tr><th>Metric</th>'+ALL_YEARS.map((y,i)=>`<th style="color:${i>=5?'#FF9900':'#A0ADB8'}">${y}</th>`).join('')+'</tr></thead><tbody>';
+  rows.forEach((row,ri)=>{
+    h+=`<tr>`;
+    row.forEach((v,ci)=>{
+      const isProj = ci>=6;
+      const color = isProj ? 'color:var(--orange)' : '';
+      h+=`<td style="${color}${ci===0?';font-weight:500':''}">${v}</td>`;
+    });
+    h+='</tr>';
+  });
+  document.getElementById('forecast-table').innerHTML = h+'</tbody>';
+}
+
+// ── Assumptions table ──────────────────────────────────────────────────────
+function buildAssumptionsTable(){
+  const rows = [
+    ['MAU growth rate', ...A.mauGrowth.map(v=>(v*100).toFixed(1)+'%')],
+    ['Paid conversion rate', ...A.convRate.map(v=>(v*100).toFixed(1)+'%')],
+    ['Revenue growth rate', ...A.revGrowth.map(v=>(v*100).toFixed(1)+'%')],
+    ['Gross margin', ...A.grossMargin.map(v=>(v*100).toFixed(1)+'%')],
+    ['ARPU — Paid (annual $)', ...A.arpuPaid.map(v=>'$'+v.toFixed(0))],
+    ['ARPU — Ad-supported ($)', ...A.arpuAd.map(v=>'$'+v.toFixed(1))],
+    ['Annual churn rate', ...A.churn.map(v=>(v*100).toFixed(1)+'%')],
+    ['Est. CAC ($)', ...A.cac.map(v=>'$'+v.toFixed(0))],
+  ];
+  let h='<thead><tr><th>Assumption</th><th style="color:#FF9900">FY2025E</th><th style="color:#FF9900">FY2026E</th><th style="color:#FF9900">FY2027E</th></tr></thead><tbody>';
+  rows.forEach(row=>{
+    h+=`<tr><td style="font-weight:500">${row[0]}</td>${row.slice(1).map(v=>`<td style="color:var(--orange)">${v}</td>`).join('')}</tr>`;
+  });
+  document.getElementById('assump-table').innerHTML = h+'</tbody>';
+}
+
+// ── Scenario table ─────────────────────────────────────────────────────────
+function buildScenarioTable(){
+  const metrics = [
+    ['Total MAUs FY2027E', SCENARIOS.bull.mau[2]+'M', SCENARIOS.base.mau[2]+'M', SCENARIOS.bear.mau[2]+'M'],
+    ['Paid Subscribers FY2027E', SCENARIOS.bull.paid[2]+'M', SCENARIOS.base.paid[2]+'M', SCENARIOS.bear.paid[2]+'M'],
+    ['Revenue FY2027E', '$'+SCENARIOS.bull.rev[2]+'B', '$'+SCENARIOS.base.rev[2]+'B', '$'+SCENARIOS.bear.rev[2]+'B'],
+    ['Gross Margin FY2027E', (SCENARIOS.bull.gm[2]*100).toFixed(0)+'%', (SCENARIOS.base.gm[2]*100).toFixed(0)+'%', (SCENARIOS.bear.gm[2]*100).toFixed(0)+'%'],
+    ['Annual Churn FY2027E', (SCENARIOS.bull.churn[2]*100).toFixed(1)+'%', (SCENARIOS.base.churn[2]*100).toFixed(1)+'%', (SCENARIOS.bear.churn[2]*100).toFixed(1)+'%'],
+    ['Revenue range vs Base', '+'+((SCENARIOS.bull.rev[2]/SCENARIOS.base.rev[2]-1)*100).toFixed(0)+'%', '—', '-'+((1-SCENARIOS.bear.rev[2]/SCENARIOS.base.rev[2])*100).toFixed(0)+'%'],
+  ];
+  let h='<thead><tr><th>Metric</th><th style="color:#3CB371">Bull Case</th><th style="color:#FF9900">Base Case</th><th style="color:#E05555">Bear Case</th></tr></thead><tbody>';
+  metrics.forEach(row=>{
+    h+=`<tr><td style="font-weight:500">${row[0]}</td>
+      <td style="color:#3CB371;font-weight:500">${row[1]}</td>
+      <td style="color:#FF9900">${row[2]}</td>
+      <td style="color:#E05555">${row[3]}</td></tr>`;
+  });
+  document.getElementById('scen-table').innerHTML = h+'</tbody>';
+}
+
+// ── Variance tracker ───────────────────────────────────────────────────────
+function buildVarianceCards(){
+  const QUARTERS = ['Q1 2025','Q2 2025','Q3 2025','Q4 2025'];
+  let html = '';
+  VAR_METRICS.forEach((m,mi)=>{
+    const fc = m.forecast[0];
+    const act = varActuals[mi][0];
+    const hasAct = act !== '' && act !== null && !isNaN(parseFloat(act));
+    const variance = hasAct ? parseFloat(act) - fc : null;
+    const varPct = variance !== null ? variance/fc : null;
+    const alertClass = varPct === null ? 'alert-warn' : Math.abs(varPct) > 0.05 ? 'alert-warn' : 'alert-ok';
+    const alertText = varPct === null ? '— Enter actual' : Math.abs(varPct) > 0.05 ? `⚠ ${(varPct*100).toFixed(1)}% miss` : `✓ OK (${(varPct>=0?'+':'')}${(varPct*100).toFixed(1)}%)`;
+
+    html += `<div class="var-card">
+      <div class="var-metric">${m.label}</div>
+      <div class="var-row"><span class="var-label">Q1 Forecast</span><span>${m.fmt(fc)}</span></div>
+      <div class="var-row"><span class="var-label">Q1 Actual</span>
+        <input class="var-input" type="number" step="0.1" placeholder="Enter"
+          value="${varActuals[mi][0]}"
+          onchange="varActuals[${mi}][0]=this.value;buildVarianceCards();buildVarianceTable()"
+          oninput="varActuals[${mi}][0]=this.value;buildVarianceCards();buildVarianceTable()">
+      </div>
+      ${variance!==null?`<div class="var-row"><span class="var-label">Variance</span><span class="var-result" style="color:${variance>=0?'var(--green)':'var(--red)'}">${variance>=0?'+':''}${m.fmt(Math.abs(variance))}</span></div>`:''}
+      <div class="alert-flag ${alertClass}">${alertText}</div>
+    </div>`;
+  });
+  document.getElementById('variance-cards').innerHTML = html;
+}
+
+function buildVarianceTable(){
+  let h='<thead><tr><th>Metric</th><th>Q1 Forecast</th><th>Q1 Actual</th><th>Q1 Variance</th><th>Q1 Var%</th><th>Alert</th></tr></thead><tbody>';
+  VAR_METRICS.forEach((m,mi)=>{
+    const fc  = m.forecast[0];
+    const act = varActuals[mi][0];
+    const hasAct = act!=='' && !isNaN(parseFloat(act));
+    const variance = hasAct ? parseFloat(act)-fc : null;
+    const varPct   = variance!==null ? variance/fc : null;
+    const alertClass = varPct===null?'neu':Math.abs(varPct)>0.05?'neg':'pos';
+    const alertText  = varPct===null?'—':Math.abs(varPct)>0.05?'⚠ Review':'OK';
+    h+=`<tr>
+      <td style="font-weight:500">${m.label}</td>
+      <td>${m.fmt(fc)}</td>
+      <td style="color:var(--orange)">${hasAct?m.fmt(parseFloat(act)):'—'}</td>
+      <td style="color:${variance===null?'var(--text-dim)':variance>=0?'var(--green)':'var(--red)'}">${variance===null?'—':(variance>=0?'+':'')+m.fmt(Math.abs(variance))}</td>
+      <td>${varPct===null?'—':`<span class="badge ${varPct>=0?'pos':'neg'}">${(varPct*100>=0?'+':'')}${(varPct*100).toFixed(1)}%</span>`}</td>
+      <td><span class="badge ${alertClass}">${alertText}</span></td>
+    </tr>`;
+  });
+  document.getElementById('variance-table').innerHTML = h+'</tbody>';
+}
+
+// ── Interactions ───────────────────────────────────────────────────────────
+function applyAssumptions(){
+  A.mauGrowth   = [+document.getElementById('a-mau25').value/100, ((+document.getElementById('a-mau25').value+1)/100), +document.getElementById('a-mau27').value/100];
+  A.mauGrowth[1]= +document.getElementById('a-mau26').value/100;
+  A.convRate    = [+document.getElementById('a-conv25').value/100, (+document.getElementById('a-conv25').value/100+document.getElementById('a-conv27').value/100)/2, +document.getElementById('a-conv27').value/100];
+  A.revGrowth   = [+document.getElementById('a-rev25').value/100, +document.getElementById('a-rev26').value/100, +document.getElementById('a-rev27').value/100];
+  A.grossMargin = [+document.getElementById('a-gm25').value/100, (+document.getElementById('a-gm25').value/100+document.getElementById('a-gm27').value/100)/2, +document.getElementById('a-gm27').value/100];
+  A.arpuPaid    = [+document.getElementById('a-arpu25').value, (+document.getElementById('a-arpu25').value+ +document.getElementById('a-arpu27').value)/2, +document.getElementById('a-arpu27').value];
+  A.churn       = [+document.getElementById('a-churn25').value/100, (+document.getElementById('a-churn25').value/100+ +document.getElementById('a-churn27').value/100)/2, +document.getElementById('a-churn27').value/100];
+  A.cac[0]      = +document.getElementById('a-cac25').value;
+  buildKPIs(); buildForecastCharts(); buildForecastTable(); buildAssumptionsTable();
+}
+
+function showTab(name){
+  ['forecast','assumptions','scenarios','variance','insights'].forEach((t,i)=>{
+    document.getElementById('panel-'+t).classList.toggle('active',t===name);
+    document.querySelectorAll('.tab')[i].classList.toggle('active',t===name);
+  });
+  if(name==='scenarios') buildScenarioCharts();
+  if(name==='insights')  { if(!charts.mktShareChart) buildScenarioCharts(); }
+}
+
+function showScenario(s){
+  document.querySelectorAll('.scen-btn').forEach((b,i)=>b.classList.toggle('active',['all','bull','base','bear'][i]===s));
+  // update visibility via opacity on datasets
+  ['bull','base','bear'].forEach((sc,i)=>{
+    const visible = s==='all'||s===sc;
+    if(charts.scenRevChart) charts.scenRevChart.data.datasets[i].hidden = !visible;
+    if(charts.scenMAUChart) charts.scenMAUChart.data.datasets[i].hidden = !visible;
+    if(charts.scenGMChart)  charts.scenGMChart.data.datasets[i].hidden  = !visible;
+  });
+  ['scenRevChart','scenMAUChart','scenGMChart'].forEach(id=>{ if(charts[id]) charts[id].update(); });
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+buildKPIs();
+buildForecastCharts();
+buildForecastTable();
+buildAssumptionsTable();
+buildScenarioTable();
+buildVarianceCards();
+buildVarianceTable();
+</script>
+</body>
+</html>
