@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Netflix — Subscriber & Revenue Growth FY2020–FY2024</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#141414;--surface:#1f1f1f;--surface2:#2a2a2a;--border:#3a3a3a;
+  --red:#E50914;--red-dim:rgba(229,9,20,0.12);--red-border:rgba(229,9,20,0.3);
+  --red2:#B20710;--text:#FFFFFF;--text-mid:#B3B3B3;--text-dim:#808080;
+  --green:#46D369;--amber:#F5A623;--blue:#4A9EE0;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6}
+header{background:#000;border-bottom:3px solid var(--red);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.netflix-logo{font-size:22px;font-weight:900;color:var(--red);letter-spacing:-0.02em;font-family:-apple-system,sans-serif}
+.hdr-right{display:flex;gap:10px}
+.hdr-badge{background:var(--red-dim);border:1px solid var(--red-border);color:var(--red);border-radius:4px;padding:4px 10px;font-size:11px;font-weight:600;letter-spacing:0.06em}
+.tabs{background:#000;border-bottom:1px solid var(--border);padding:0 2rem;display:flex;gap:0;overflow-x:auto}
+.tab{padding:12px 18px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;border:none;background:transparent;cursor:pointer;color:var(--text-dim);border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;transition:all 0.2s;white-space:nowrap}
+.tab:hover{color:var(--text-mid)}
+.tab.active{color:var(--red);border-bottom-color:var(--red)}
+.panel{display:none}.panel.active{display:block}
+main{max-width:1150px;margin:0 auto;padding:2rem}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:2rem}
+.kpi{background:var(--surface);padding:1.25rem 1.5rem}
+.kpi-label{font-size:11px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+.kpi-val{font-size:24px;font-weight:300;letter-spacing:-0.01em}
+.kpi-sub{font-size:12px;margin-top:4px}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:2rem}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.5rem}
+.chart-card.full{grid-column:1/-1}
+.ct{font-size:11px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px}
+.cs{font-size:13px;color:var(--text-mid);margin-bottom:1.25rem;line-height:1.5}
+.cw{position:relative;width:100%}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:10px;font-size:12px;color:var(--text-mid)}
+.ldot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:middle}
+.tbl-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:2rem}
+.tbl-hdr{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border)}
+.tbl-hdr h3{font-size:14px;font-weight:500}
+.tbl-hdr p{font-size:12px;color:var(--text-dim);margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--surface2);color:var(--text-dim);font-weight:400;padding:9px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;font-size:11px;letter-spacing:0.06em;text-transform:uppercase}
+td{padding:8px 14px;border-bottom:1px solid var(--surface2);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500}
+.pos{background:rgba(70,211,105,0.15);color:#46D369}
+.neg{background:rgba(229,9,20,0.15);color:#E50914}
+.neu{background:var(--surface2);color:var(--text-dim)}
+.ibox{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:0 8px 8px 0;padding:1.25rem;margin-bottom:12px}
+.ibox.green{border-left-color:var(--green)}
+.ibox.amber{border-left-color:var(--amber)}
+.ititle{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--red);margin-bottom:8px}
+.ibox.green .ititle{color:var(--green)}
+.ibox.amber .ititle{color:var(--amber)}
+.itext{font-size:13px;color:var(--text-mid);line-height:1.65}
+.insight-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:2rem}
+footer{border-top:1px solid var(--border);padding:1.5rem 2rem;font-size:12px;color:var(--text-dim);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+footer a{color:var(--red);text-decoration:none}
+@media(max-width:768px){.chart-grid{grid-template-columns:1fr}.chart-card.full{grid-column:1}main{padding:1.25rem}}
+</style>
+</head>
+<body>
+<header>
+  <div class="netflix-logo">NETFLIX</div>
+  <div class="hdr-right">
+    <span class="hdr-badge">10-K SEC FILINGS</span>
+    <span class="hdr-badge">FY2020–FY2024</span>
+  </div>
+</header>
+<div class="tabs">
+  <button class="tab active" onclick="showTab('overview')">Overview</button>
+  <button class="tab" onclick="showTab('subscribers')">Subscribers</button>
+  <button class="tab" onclick="showTab('financials')">Financials</button>
+  <button class="tab" onclick="showTab('arpu')">ARPU & Unit Economics</button>
+  <button class="tab" onclick="showTab('insights')">Analyst Insights</button>
+</div>
+
+<!-- OVERVIEW -->
+<div id="panel-overview" class="panel active"><main>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">Total Subscribers FY2024</div><div class="kpi-val" style="color:var(--red)">301.6M</div><div class="kpi-sub" style="color:var(--green)">▲ +19% YoY</div></div>
+    <div class="kpi"><div class="kpi-label">Revenue FY2024</div><div class="kpi-val">$39.0B</div><div class="kpi-sub" style="color:var(--green)">▲ +16% YoY</div></div>
+    <div class="kpi"><div class="kpi-label">Operating Income</div><div class="kpi-val" style="color:var(--green)">$10.4B</div><div class="kpi-sub" style="color:var(--green)">▲ +50% YoY</div></div>
+    <div class="kpi"><div class="kpi-label">Operating Margin</div><div class="kpi-val" style="color:var(--green)">26.7%</div><div class="kpi-sub" style="color:var(--green)">▲ vs 21% in FY2023</div></div>
+    <div class="kpi"><div class="kpi-label">Revenue 4-yr CAGR</div><div class="kpi-val">+11.8%</div><div class="kpi-sub" style="color:var(--text-dim)">FY2020→FY2024</div></div>
+    <div class="kpi"><div class="kpi-label">Subscriber 4-yr CAGR</div><div class="kpi-val">+15.9%</div><div class="kpi-sub" style="color:var(--text-dim)">188.7M→301.6M</div></div>
+  </div>
+  <div class="chart-grid">
+    <div class="chart-card full">
+      <div class="ct">Revenue & operating income</div>
+      <div class="cs">FY2020–FY2024 ($B) — FY2022 operating income dip driven by subscriber loss and content cost timing</div>
+      <div class="legend">
+        <span><span class="ldot" style="background:#E50914"></span>Revenue</span>
+        <span><span class="ldot" style="background:#46D369"></span>Operating Income</span>
+      </div>
+      <div class="cw" style="height:280px"><canvas id="c-revoi"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="ct">Total paid subscribers (M)</div>
+      <div class="cs">Global subscriber growth — cracked 300M in FY2024</div>
+      <div class="cw" style="height:240px"><canvas id="c-subs"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="ct">Operating margin %</div>
+      <div class="cs">Margin expansion story — from 18% in FY2020 to 26.7% in FY2024</div>
+      <div class="cw" style="height:240px"><canvas id="c-margin"></canvas></div>
+    </div>
+  </div>
+</main></div>
+
+<!-- SUBSCRIBERS -->
+<div id="panel-subscribers" class="panel"><main>
+  <div class="chart-grid">
+    <div class="chart-card full">
+      <div class="ct">Subscribers by region (M)</div>
+      <div class="cs">UCAN / EMEA / LATAM / APAC — stacked view shows international driving growth</div>
+      <div class="legend">
+        <span><span class="ldot" style="background:#E50914"></span>UCAN</span>
+        <span><span class="ldot" style="background:#4A9EE0"></span>EMEA</span>
+        <span><span class="ldot" style="background:#46D369"></span>LATAM</span>
+        <span><span class="ldot" style="background:#F5A623"></span>APAC</span>
+      </div>
+      <div class="cw" style="height:300px"><canvas id="c-regsubs"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="ct">Regional mix FY2024</div>
+      <div class="cs">EMEA is now largest region by subscribers</div>
+      <div class="cw" style="height:260px"><canvas id="c-mix"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="ct">Net adds by year</div>
+      <div class="cs">FY2022 lost subscribers; FY2024 record adds of +41.6M</div>
+      <div class="cw" style="height:260px"><canvas id="c-netadds"></canvas></div>
+    </div>
+  </div>
+  <div class="tbl-card">
+    <div class="tbl-hdr"><h3>Paid subscribers by region</h3><p>Millions · Source: Netflix 10-K & 8-K shareholder letters FY2020–FY2024</p></div>
+    <div style="overflow-x:auto"><table id="sub-table"></table></div>
+  </div>
+</main></div>
+
+<!-- FINANCIALS -->
+<div id="panel-financials" class="panel"><main>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="ct">Revenue growth % YoY</div>
+      <div class="cs">Growth decelerated in FY2022 but reaccelerated sharply in FY2024</div>
+      <div class="cw" style="height:260px"><canvas id="c-revgrowth"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="ct">Content & marketing spend ($B)</div>
+      <div class="cs">Content cost is the dominant expense — Netflix invested $17.7B in FY2024</div>
+      <div class="cw" style="height:260px"><canvas id="c-opex"></canvas></div>
+    </div>
+  </div>
+  <div class="tbl-card">
+    <div class="tbl-hdr"><h3>Income statement summary</h3><p>USD thousands · Source: Netflix 10-K SEC filings FY2020–FY2024</p></div>
+    <div style="overflow-x:auto"><table id="fin-table"></table></div>
+  </div>
+</main></div>
+
+<!-- ARPU -->
+<div id="panel-arpu" class="panel"><main>
+  <div class="chart-grid">
+    <div class="chart-card full">
+      <div class="ct">Monthly ARPU by region ($)</div>
+      <div class="cs">UCAN commands 2x+ the ARPU of LATAM and APAC — FX headwinds visible in EMEA and LATAM dips</div>
+      <div class="legend">
+        <span><span class="ldot" style="background:#E50914"></span>UCAN</span>
+        <span><span class="ldot" style="background:#4A9EE0"></span>EMEA</span>
+        <span><span class="ldot" style="background:#46D369"></span>LATAM</span>
+        <span><span class="ldot" style="background:#F5A623"></span>APAC</span>
+      </div>
+      <div class="cw" style="height:300px"><canvas id="c-arpu"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="ct">ARPU gap — UCAN vs other regions</div>
+      <div class="cs">UCAN premium reflects pricing power in mature market</div>
+      <div class="cw" style="height:240px"><canvas id="c-arpugap"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="ct">Revenue per subscriber ($)</div>
+      <div class="cs">Annual revenue divided by average subscribers — blended global</div>
+      <div class="cw" style="height:240px"><canvas id="c-revpersub"></canvas></div>
+    </div>
+  </div>
+  <div class="tbl-card">
+    <div class="tbl-hdr"><h3>ARPU by region (monthly $)</h3><p>Source: Netflix 10-K regional breakdowns FY2020–FY2024</p></div>
+    <div style="overflow-x:auto"><table id="arpu-table"></table></div>
+  </div>
+</main></div>
+
+<!-- INSIGHTS -->
+<div id="panel-insights" class="panel"><main>
+  <div class="insight-grid">
+    <div class="ibox green">
+      <div class="ititle">Profitability inflection</div>
+      <div class="itext">Operating income nearly doubled from $6.95B in FY2023 to $10.4B in FY2024 — a 50% jump. Operating margin expanded 570bps to 26.7%. This reflects the payoff from three years of cost discipline: password-sharing crackdown driving net adds, ad-tier monetization ramping, and content spend leverage. Netflix guided for 28% operating margin in FY2025.</div>
+    </div>
+    <div class="ibox green">
+      <div class="ititle">Password sharing crackdown</div>
+      <div class="itext">FY2022 was the crisis year — Netflix lost 1.2M subscribers in H1, its first subscriber decline in a decade. The response was the password-sharing crackdown launched in Q2 2023, which drove record net adds of +8.76M in Q2 2023 alone. By FY2024, total subscribers hit 301.6M — a 41.6M increase in a single year, the largest in company history.</div>
+    </div>
+    <div class="ibox amber">
+      <div class="ititle">ARPU complexity — FX & mix</div>
+      <div class="itext">Blended global ARPU masks a critical structural dynamic: UCAN ARPU ($17.29/mo) is 2.4x LATAM ($7.21/mo) and 2.1x APAC ($8.08/mo). As international markets (EMEA, LATAM, APAC) grow faster than UCAN, they dilute blended ARPU even when local-currency ARPU improves. This is why Netflix targets revenue growth over ARPU growth as its primary metric.</div>
+    </div>
+    <div class="ibox">
+      <div class="ititle">Advertising tier — the next growth lever</div>
+      <div class="itext">Netflix launched its ad-supported tier in November 2022 at $6.99/month. By mid-2024, the ad tier had ~40M monthly active users globally. The ad business is still early-stage — Netflix doesn't break out ad revenue — but management has guided for ad revenue to become "meaningful" by FY2026. This is the most significant new revenue stream since international expansion.</div>
+    </div>
+    <div class="ibox">
+      <div class="ititle">EMEA — largest but lowest ARPU</div>
+      <div class="itext">EMEA became the largest region by subscribers in FY2023 (88.8M) and grew to 99.7M in FY2024. But EMEA ARPU ($10.62/mo) has actually declined from $10.69 in FY2020 due to FX headwinds and competitive pricing in Eastern Europe. EMEA is a volume story, not a monetization story — pricing power in this region remains constrained.</div>
+    </div>
+    <div class="ibox amber">
+      <div class="ititle">FY2022 anomaly explained</div>
+      <div class="itext">Operating income dropped from $6.19B in FY2021 to $5.63B in FY2022 despite revenue growing $1.9B. Three factors: (1) subscriber losses in H1 2022 as post-COVID churn accelerated; (2) elevated content amortization from a back-weighted release slate; (3) FX headwinds on non-USD revenues. All three were transitory — the structural business was healthy throughout.</div>
+    </div>
+  </div>
+  <div class="tbl-card">
+    <div class="tbl-hdr"><h3>Competitive benchmarking — streaming platforms FY2024</h3><p>Netflix vs peers on key metrics</p></div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Metric</th><th>Netflix</th><th>Disney+</th><th>Amazon Prime Video</th><th>HBO Max</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:500">Paid Subscribers</td><td style="color:#E50914;font-weight:500">301.6M</td><td>122M</td><td>~200M (est)</td><td>~100M</td></tr>
+          <tr><td style="font-weight:500">Annual Revenue</td><td style="color:#E50914;font-weight:500">$39.0B</td><td>~$9.8B</td><td>Bundled in Prime</td><td>~$10B (WBD total)</td></tr>
+          <tr><td style="font-weight:500">Operating Margin</td><td style="color:#46D369;font-weight:500">26.7%</td><td>Negative to breakeven</td><td>N/A (bundled)</td><td>~15% (WBD total)</td></tr>
+          <tr><td style="font-weight:500">ARPU (blended)</td><td>~$10.78/mo</td><td>~$6.73/mo</td><td>~$8.99/mo</td><td>~$15.99/mo</td></tr>
+          <tr><td style="font-weight:500">Content spend</td><td>$17.7B</td><td>~$9B</td><td>~$9B (est)</td><td>~$4B (WBD)</td></tr>
+          <tr><td style="font-weight:500">Ad tier launched</td><td><span class="badge pos">Nov 2022</span></td><td><span class="badge pos">Dec 2022</span></td><td><span class="badge pos">Jan 2024</span></td><td><span class="badge pos">Jun 2023</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main></div>
+
+<footer>
+  <span>Netflix Inc. (NASDAQ: NFLX) · Subscriber & Revenue Growth Analysis FY2020–FY2024 · Source: SEC 10-K filings · FP&A Portfolio — Rachel Lau</span>
+  <a href="https://github.com/lauchel/financial-analyst-portfolio" target="_blank">github.com/lauchel/financial-analyst-portfolio</a>
+</footer>
+
+<script>
+const YEARS=['FY2020','FY2021','FY2022','FY2023','FY2024'];
+const REV  =[25.0,29.7,31.6,33.7,39.0];
+const OI   =[4.59,6.19,5.63,6.95,10.42];
+const NI   =[2.76,5.12,4.49,5.41,7.78];
+const OM   =[18.3,20.9,17.8,20.6,26.7];
+const CONTENT=[12.4,17.7,17.8,13.0,17.7];
+const MKTG =[2.2,2.5,2.5,2.7,2.7];
+const UCAN =[73.94,75.22,74.30,80.13,94.36];
+const EMEA =[51.78,59.73,73.53,88.81,99.68];
+const LATAM=[37.54,40.28,39.94,42.50,49.37];
+const APAC =[25.49,32.69,38.02,42.43,54.45];
+const TOTAL=YEARS.map((_,i)=>+(UCAN[i]+EMEA[i]+LATAM[i]+APAC[i]).toFixed(1));
+const UCAN_ARPU =[14.16,14.78,15.84,16.29,17.29];
+const EMEA_ARPU =[10.69,10.63,11.24,10.95,10.62];
+const LATAM_ARPU=[7.26,7.22,8.16,8.28,7.21];
+const APAC_ARPU =[9.28,9.55,9.67,7.64,8.08];
+const NET_ADDS  =[null,1.5,-1.2,29.5,41.6];
+
+const OPT={responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{display:false}},
+  scales:{x:{ticks:{color:'#808080',font:{size:11}},grid:{color:'rgba(255,255,255,0.05)'}},
+    y:{ticks:{color:'#808080',font:{size:11}},grid:{color:'rgba(255,255,255,0.05)'}}}};
+
+function mkOpts(yFmt){
+  return {...OPT,scales:{...OPT.scales,
+    y:{...OPT.scales.y,ticks:{color:'#808080',font:{size:11},callback:yFmt}}}};
+}
+
+// Overview
+new Chart(document.getElementById('c-revoi'),{type:'bar',
+  data:{labels:YEARS,datasets:[
+    {label:'Revenue',data:REV,backgroundColor:'#E50914',borderRadius:3},
+    {label:'Op. Income',data:OI,backgroundColor:'#46D369',borderRadius:3}
+  ]},
+  options:{...mkOpts(v=>`$${v}B`),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: $${c.parsed.y}B`}}}}
+});
+new Chart(document.getElementById('c-subs'),{type:'line',
+  data:{labels:YEARS,datasets:[{data:TOTAL,borderColor:'#E50914',backgroundColor:'rgba(229,9,20,0.08)',tension:0.3,pointRadius:5,fill:true}]},
+  options:{...mkOpts(v=>`${v}M`),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.parsed.y}M subscribers`}}}}
+});
+new Chart(document.getElementById('c-margin'),{type:'bar',
+  data:{labels:YEARS,datasets:[{data:OM,backgroundColor:OM.map(v=>v>=25?'#46D369':'rgba(229,9,20,0.7)'),borderRadius:3}]},
+  options:{...mkOpts(v=>`${v}%`),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.parsed.y}% operating margin`}}}}
+});
+
+// Subscribers
+new Chart(document.getElementById('c-regsubs'),{type:'bar',
+  data:{labels:YEARS,datasets:[
+    {label:'UCAN',data:UCAN,backgroundColor:'#E50914',borderRadius:0},
+    {label:'EMEA',data:EMEA,backgroundColor:'#4A9EE0',borderRadius:0},
+    {label:'LATAM',data:LATAM,backgroundColor:'#46D369',borderRadius:0},
+    {label:'APAC',data:APAC,backgroundColor:'#F5A623',borderRadius:0},
+  ]},
+  options:{...mkOpts(v=>`${v}M`),indexAxis:'x',
+    plugins:{legend:{display:false}},
+    scales:{x:{stacked:true,ticks:{color:'#808080',font:{size:11}},grid:{display:false}},
+      y:{stacked:true,ticks:{color:'#808080',font:{size:11},callback:v=>`${v}M`},grid:{color:'rgba(255,255,255,0.05)'}}}}
+});
+new Chart(document.getElementById('c-mix'),{type:'doughnut',
+  data:{labels:['UCAN','EMEA','LATAM','APAC'],
+    datasets:[{data:[94.36,99.68,49.37,54.45],backgroundColor:['#E50914','#4A9EE0','#46D369','#F5A623'],borderWidth:0,hoverOffset:4}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+    plugins:{legend:{display:true,position:'right',labels:{color:'#B3B3B3',font:{size:12},padding:10}},
+      tooltip:{callbacks:{label:c=>` ${c.label}: ${c.parsed.toFixed(1)}M`}}}}
+});
+const netAddsData=NET_ADDS.map((v,i)=>v);
+new Chart(document.getElementById('c-netadds'),{type:'bar',
+  data:{labels:YEARS,datasets:[{data:[null,1.5,-1.2,29.5,41.6],backgroundColor:['#666','#46D369','#E50914','#46D369','#46D369'].slice(1),borderRadius:3}]},
+  options:{...mkOpts(v=>`${v}M`),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.parsed.y}M net adds`}}}}
+});
+
+// Build sub table
+function buildSubTable(){
+  let h='<thead><tr><th>Region</th>'+YEARS.map(y=>`<th>${y}</th>`).join('')+'<th>4-yr CAGR</th></tr></thead><tbody>';
+  const data=[['UCAN',UCAN,'#E50914'],['EMEA',EMEA,'#4A9EE0'],['LATAM',LATAM,'#46D369'],['APAC',APAC,'#F5A623'],['Total',TOTAL,'#FFFFFF']];
+  data.forEach(([r,vals,color])=>{
+    const cagr=+(Math.pow(vals[4]/vals[0],0.25)-1)*100;
+    h+=`<tr><td style="font-weight:600;color:${color}">${r}</td>`;
+    vals.forEach(v=>h+=`<td>${v.toFixed(1)}M</td>`);
+    h+=`<td><span class="badge pos">+${cagr.toFixed(1)}%</span></td></tr>`;
+  });
+  document.getElementById('sub-table').innerHTML=h+'</tbody>';
+}
+
+// Financials
+new Chart(document.getElementById('c-revgrowth'),{type:'bar',
+  data:{labels:YEARS.slice(1),datasets:[{data:YEARS.slice(1).map((_,i)=>+(((REV[i+1]-REV[i])/REV[i])*100).toFixed(1)),
+    backgroundColor:['#46D369','rgba(229,9,20,0.7)','#46D369','#46D369'],borderRadius:3}]},
+  options:{...mkOpts(v=>`${v}%`),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.parsed.y}% YoY revenue growth`}}}}
+});
+new Chart(document.getElementById('c-opex'),{type:'bar',
+  data:{labels:YEARS,datasets:[
+    {label:'Content',data:CONTENT,backgroundColor:'#E50914',borderRadius:0},
+    {label:'Marketing',data:MKTG,backgroundColor:'#4A9EE0',borderRadius:0},
+  ]},
+  options:{...mkOpts(v=>`$${v}B`),
+    plugins:{legend:{display:false}},
+    scales:{x:{stacked:true,ticks:{color:'#808080',font:{size:11}},grid:{display:false}},
+      y:{stacked:true,ticks:{color:'#808080',font:{size:11},callback:v=>`$${v}B`},grid:{color:'rgba(255,255,255,0.05)'}}}}
+});
+
+function buildFinTable(){
+  const rows=[
+    ['Revenue ($B)',REV.map(v=>'$'+v.toFixed(1)+'B'),''],
+    ['Operating Income ($B)',OI.map(v=>'$'+v.toFixed(2)+'B'),'pos'],
+    ['Net Income ($B)',NI.map(v=>'$'+v.toFixed(2)+'B'),'pos'],
+    ['Operating Margin',OM.map(v=>v+'%'),'pos'],
+    ['Content Expense ($B)',CONTENT.map(v=>'$'+v.toFixed(1)+'B'),'neg'],
+    ['Marketing ($B)',MKTG.map(v=>'$'+v.toFixed(1)+'B'),''],
+  ];
+  let h='<thead><tr><th>Metric</th>'+YEARS.map(y=>`<th>${y}</th>`).join('')+'</tr></thead><tbody>';
+  rows.forEach(([label,vals,badge])=>{
+    h+=`<tr><td style="font-weight:500">${label}</td>`;
+    vals.forEach((v,i)=>{
+      const color=badge==='pos'?'#46D369':badge==='neg'?'#E50914':'';
+      h+=`<td style="color:${color||'inherit'}">${v}</td>`;
+    });
+    h+='</tr>';
+  });
+  document.getElementById('fin-table').innerHTML=h+'</tbody>';
+}
+
+// ARPU
+new Chart(document.getElementById('c-arpu'),{type:'line',
+  data:{labels:YEARS,datasets:[
+    {label:'UCAN',data:UCAN_ARPU,borderColor:'#E50914',backgroundColor:'transparent',tension:0.3,pointRadius:5,borderWidth:2},
+    {label:'EMEA',data:EMEA_ARPU,borderColor:'#4A9EE0',backgroundColor:'transparent',tension:0.3,pointRadius:5,borderWidth:2},
+    {label:'LATAM',data:LATAM_ARPU,borderColor:'#46D369',backgroundColor:'transparent',tension:0.3,pointRadius:5,borderWidth:2},
+    {label:'APAC',data:APAC_ARPU,borderColor:'#F5A623',backgroundColor:'transparent',tension:0.3,pointRadius:5,borderWidth:2},
+  ]},
+  options:{...mkOpts(v=>`$${v}`),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: $${c.parsed.y}/mo`}}}}
+});
+const arpuGap=YEARS.map((_,i)=>+(UCAN_ARPU[i]-((EMEA_ARPU[i]+LATAM_ARPU[i]+APAC_ARPU[i])/3)).toFixed(2));
+new Chart(document.getElementById('c-arpugap'),{type:'bar',
+  data:{labels:YEARS,datasets:[{data:arpuGap,backgroundColor:'#E50914',borderRadius:3}]},
+  options:{...mkOpts(v=>`$${v}`),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` UCAN premium over intl avg: $${c.parsed.y}/mo`}}}}
+});
+const revPerSub=YEARS.map((_,i)=>+(REV[i]*1000/TOTAL[i]).toFixed(0));
+new Chart(document.getElementById('c-revpersub'),{type:'bar',
+  data:{labels:YEARS,datasets:[{data:revPerSub,backgroundColor:YEARS.map((_,i)=>i===4?'#46D369':'rgba(229,9,20,0.7)'),borderRadius:3}]},
+  options:{...mkOpts(v=>`$${v}`),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` $${c.parsed.y} annual revenue per subscriber`}}}}
+});
+
+function buildArpuTable(){
+  const data=[['UCAN',UCAN_ARPU,'#E50914'],['EMEA',EMEA_ARPU,'#4A9EE0'],['LATAM',LATAM_ARPU,'#46D369'],['APAC',APAC_ARPU,'#F5A623']];
+  let h='<thead><tr><th>Region</th>'+YEARS.map(y=>`<th>${y}</th>`).join('')+'<th>FY24 vs FY20</th></tr></thead><tbody>';
+  data.forEach(([r,vals,color])=>{
+    const chg=+(vals[4]-vals[0]).toFixed(2);
+    h+=`<tr><td style="font-weight:600;color:${color}">${r}</td>`;
+    vals.forEach(v=>h+=`<td>$${v.toFixed(2)}</td>`);
+    h+=`<td><span class="badge ${chg>=0?'pos':'neg'}">${chg>=0?'+':''}$${chg.toFixed(2)}</span></td></tr>`;
+  });
+  document.getElementById('arpu-table').innerHTML=h+'</tbody>';
+}
+
+function showTab(name){
+  ['overview','subscribers','financials','arpu','insights'].forEach((t,i)=>{
+    document.getElementById('panel-'+t).classList.toggle('active',t===name);
+    document.querySelectorAll('.tab')[i].classList.toggle('active',t===name);
+  });
+}
+
+buildSubTable(); buildFinTable(); buildArpuTable();
+</script>
+</body>
+</html>
