@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amazon Music — Three-Statement FP&A Model FY2025E–FY2027E</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#0F1111;--surface:#1A1A1A;--surface2:#232F3E;--surface3:#2D3748;
+--border:#3D4B5C;--border2:#4A5568;
+--orange:#FF9900;--orange-dim:rgba(255,153,0,0.12);--orange-border:rgba(255,153,0,0.3);
+--orange-dark:#CC7A00;--orange-light:#FFB84D;
+--text:#F0F0F0;--text-mid:#A0ADB8;--text-dim:#6B7A8D;
+--green:#3CB371;--red:#E05555;--blue:#4A9EE0;--teal:#38B2AC;
+--navy:#131921;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6}
+header{background:var(--navy);border-bottom:1px solid var(--orange);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:14px}
+.amzn-text{font-size:20px;font-weight:700;color:var(--text);letter-spacing:-0.01em}
+.amzn-text span{color:var(--orange)}
+.amzn-sub{font-size:10px;color:var(--orange);letter-spacing:0.15em;text-transform:uppercase;margin-top:-2px}
+.hdr-right{display:flex;align-items:center;gap:12px}
+.hdr-badge{background:var(--orange-dim);border:1px solid var(--orange-border);color:var(--orange);border-radius:4px;padding:4px 10px;font-size:11px;font-weight:500;letter-spacing:0.06em}
+.hdr-back{color:var(--text-mid);font-size:12px;text-decoration:none;letter-spacing:0.08em;text-transform:uppercase;transition:color 0.2s}
+.hdr-back:hover{color:var(--orange)}
+.subnav{background:var(--surface2);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;gap:0;overflow-x:auto}
+.tab{padding:12px 18px;font-size:12px;letter-spacing:0.07em;text-transform:uppercase;border:none;background:transparent;cursor:pointer;color:var(--text-dim);border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;transition:all 0.2s;white-space:nowrap}
+.tab:hover{color:var(--text-mid);background:rgba(255,255,255,0.04)}
+.tab.active{color:var(--orange);border-bottom-color:var(--orange)}
+.panel{display:none}.panel.active{display:block}
+main{max-width:1200px;margin:0 auto;padding:2rem}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:2rem}
+.metric-card{background:var(--surface);padding:1.25rem 1.5rem}
+.mc-label{font-size:11px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+.mc-value{font-size:24px;font-weight:300;color:var(--text);letter-spacing:-0.01em}
+.mc-sub{font-size:12px;margin-top:4px}
+.mc-sub.up{color:var(--green)}.mc-sub.down{color:var(--red)}.mc-sub.neu{color:var(--text-dim)}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:2rem}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.5rem}
+.chart-card.full{grid-column:1/-1}
+.cc-label{font-size:11px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px}
+.cc-sub{font-size:13px;color:var(--text-mid);margin-bottom:1.25rem;line-height:1.5}
+.cw{position:relative;width:100%}
+.tbl-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1.5rem}
+.tbl-hdr{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border)}
+.tbl-hdr h3{font-size:14px;font-weight:500;color:var(--text)}
+.tbl-hdr p{font-size:12px;color:var(--text-dim);margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--surface2);color:var(--text-dim);font-weight:400;padding:10px 16px;text-align:right;border-bottom:1px solid var(--border);font-size:11px;letter-spacing:0.07em;text-transform:uppercase}
+th:first-child{text-align:left}
+td{padding:9px 16px;border-bottom:1px solid var(--surface2);text-align:right;color:var(--text-mid)}
+td:first-child{text-align:left;color:var(--text)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+tr.total-row td{color:var(--text);font-weight:600;border-top:1px solid var(--border);background:var(--surface2)}
+tr.section-row td{color:var(--text-dim);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;background:rgba(255,153,0,0.05);padding-top:14px}
+tr.indent td:first-child{padding-left:32px;color:var(--text-mid)}
+tr.subtotal-row td{color:var(--orange);font-weight:500;border-top:1px solid var(--border)}
+.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500}
+.pos{background:rgba(60,179,113,0.15);color:#3CB371}
+.neg{background:rgba(224,85,85,0.15);color:#E05555}
+.neu{background:var(--surface2);color:var(--text-dim)}
+.warn-badge{background:rgba(255,153,0,0.15);color:var(--orange)}
+.assumption-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:2rem}
+.assump-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.25rem}
+.assump-title{font-size:11px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.assump-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.assump-label{font-size:13px;color:var(--text-mid);flex:1;padding-right:12px}
+.assump-input{background:var(--surface2);border:1px solid var(--border2);border-radius:4px;color:var(--orange);font-size:13px;font-weight:600;padding:5px 10px;width:90px;text-align:right;font-family:inherit}
+.assump-input:focus{outline:none;border-color:var(--orange)}
+.apply-btn{background:var(--orange);color:#000;border:none;border-radius:4px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.apply-btn:hover{background:var(--orange-light)}
+.scenario-tabs{display:flex;gap:8px;margin-bottom:1.5rem}
+.scen-btn{padding:8px 20px;border-radius:4px;border:1px solid var(--border2);background:var(--surface);cursor:pointer;font-size:13px;color:var(--text-mid);font-family:inherit}
+.scen-btn.active{background:var(--orange);color:#000;border-color:var(--orange);font-weight:600}
+.scen-btn:hover:not(.active){border-color:var(--orange-border);color:var(--text)}
+.variance-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:1.5rem}
+.var-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.25rem}
+.vc-label{font-size:11px;color:var(--text-dim);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px}
+.vc-val{font-size:22px;font-weight:300;color:var(--text);margin-bottom:4px}
+.vc-delta{font-size:12px}
+.alert-bar{border-radius:6px;padding:10px 16px;font-size:13px;margin-bottom:1.5rem;display:flex;align-items:center;gap:10px}
+.alert-bar.ok{background:rgba(60,179,113,0.1);border:1px solid rgba(60,179,113,0.3);color:var(--green)}
+.alert-bar.warn{background:rgba(255,153,0,0.1);border:1px solid var(--orange-border);color:var(--orange)}
+.insight-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:2rem}
+.insight-box{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:0 8px 8px 0;padding:1.25rem}
+.ins-title{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--orange);margin-bottom:8px}
+.ins-text{font-size:13px;color:var(--text-mid);line-height:1.65}
+.legend{display:flex;gap:2rem;flex-wrap:wrap;margin-bottom:2rem}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-dim)}
+.l-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+@media(max-width:768px){
+.chart-grid{grid-template-columns:1fr}.chart-card.full{grid-column:1}
+.insight-grid{grid-template-columns:1fr}
+main{padding:1rem}header{padding:0 1rem}.subnav{padding:0 1rem}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div>
+      <div class="amzn-text">amazon<span>music</span></div>
+      <div class="amzn-sub">Financial Planning &amp; Analysis</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <span class="hdr-badge">Three-Statement Model · FY2025E–FY2027E</span>
+    <a href="index.html" class="hdr-back">← All Projects</a>
+  </div>
+</header>
+
+<div class="subnav">
+  <button class="tab active" onclick="showPanel('overview',this)">Overview</button>
+  <button class="tab" onclick="showPanel('assumptions',this)">Assumptions</button>
+  <button class="tab" onclick="showPanel('statements',this)">Statements</button>
+  <button class="tab" onclick="showPanel('variance',this)">Variance Tracker</button>
+  <button class="tab" onclick="showPanel('insights',this)">Analyst Insights</button>
+</div>
+
+<!-- OVERVIEW -->
+<div id="panel-overview" class="panel active">
+<main>
+  <div class="metric-grid" id="kpi-cards"></div>
+  <div class="chart-grid">
+    <div class="chart-card full">
+      <div class="cc-label">Revenue &amp; EBIT bridge — all scenarios</div>
+      <div class="cc-sub">Bull / Base / Bear revenue vs Base EBIT — FY2025E through FY2027E</div>
+      <div class="cw"><canvas id="bridge-chart" height="90"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="cc-label">Margin progression</div>
+      <div class="cc-sub">Gross margin and EBIT margin % — base case FY2024A to FY2027E</div>
+      <div class="cw"><canvas id="margin-chart" height="160"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="cc-label">Free cash flow</div>
+      <div class="cc-sub">Operating cash flow vs CapEx vs FCF — base case</div>
+      <div class="cw"><canvas id="fcf-chart" height="160"></canvas></div>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="l-dot" style="background:var(--orange)"></div>Orange inputs = editable assumptions (blue in Excel convention)</div>
+    <div class="legend-item"><div class="l-dot" style="background:var(--text-mid)"></div>All outputs = formula-driven, fully linked across all three statements</div>
+    <div class="legend-item"><div class="l-dot" style="background:var(--green)"></div>Green = beat vs budget &nbsp;·&nbsp; <div class="l-dot" style="background:var(--red)"></div>&nbsp;Red = miss</div>
+  </div>
+</main>
+</div>
+
+<!-- ASSUMPTIONS -->
+<div id="panel-assumptions" class="panel">
+<main>
+  <div style="margin-bottom:1.5rem">
+    <div style="font-size:11px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">Interactive model</div>
+    <div style="font-size:13px;color:var(--text-mid)">Adjust any assumption and click <strong style="color:var(--orange)">Apply Changes</strong> to update all three statements, charts, and variance tracker instantly.</div>
+  </div>
+  <div class="assumption-grid">
+    <div class="assump-card">
+      <div class="assump-title">Revenue &amp; Growth</div>
+      <div class="assump-row"><span class="assump-label">Revenue growth FY25</span><input class="assump-input" id="a-rev25" value="16" type="number">%</div>
+      <div class="assump-row"><span class="assump-label">Revenue growth FY26</span><input class="assump-input" id="a-rev26" value="18" type="number">%</div>
+      <div class="assump-row"><span class="assump-label">Revenue growth FY27</span><input class="assump-input" id="a-rev27" value="20" type="number">%</div>
+    </div>
+    <div class="assump-card">
+      <div class="assump-title">Margins</div>
+      <div class="assump-row"><span class="assump-label">Gross margin FY25</span><input class="assump-input" id="a-gm25" value="32" type="number">%</div>
+      <div class="assump-row"><span class="assump-label">Gross margin FY27</span><input class="assump-input" id="a-gm27" value="36" type="number">%</div>
+      <div class="assump-row"><span class="assump-label">OpEx % revenue FY25</span><input class="assump-input" id="a-opex25" value="27" type="number">%</div>
+      <div class="assump-row"><span class="assump-label">OpEx % revenue FY27</span><input class="assump-input" id="a-opex27" value="24" type="number">%</div>
+    </div>
+    <div class="assump-card">
+      <div class="assump-title">Balance Sheet &amp; Cash Flow</div>
+      <div class="assump-row"><span class="assump-label">D&amp;A % revenue</span><input class="assump-input" id="a-da" value="3" type="number">%</div>
+      <div class="assump-row"><span class="assump-label">CapEx % revenue</span><input class="assump-input" id="a-capex" value="5" type="number">%</div>
+      <div class="assump-row"><span class="assump-label">AR days</span><input class="assump-input" id="a-ar" value="30" type="number"> days</div>
+      <div class="assump-row"><span class="assump-label">Tax rate</span><input class="assump-input" id="a-tax" value="21" type="number">%</div>
+    </div>
+  </div>
+  <button class="apply-btn" onclick="applyAssumptions()">&#9658; Apply Changes</button>
+  <div style="margin-top:2rem">
+    <div style="font-size:11px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1rem">Current assumptions summary</div>
+    <div class="tbl-card">
+      <table><thead><tr><th>Assumption</th><th>FY2025E</th><th>FY2026E</th><th>FY2027E</th></tr></thead>
+      <tbody id="assump-summary"></tbody></table>
+    </div>
+  </div>
+</main>
+</div>
+
+<!-- STATEMENTS -->
+<div id="panel-statements" class="panel">
+<main>
+  <div class="scenario-tabs">
+    <button class="scen-btn active" onclick="setScenario('base',this)">Base Case</button>
+    <button class="scen-btn" onclick="setScenario('bull',this)">Bull Case</button>
+    <button class="scen-btn" onclick="setScenario('bear',this)">Bear Case</button>
+  </div>
+  <div class="tbl-card">
+    <div class="tbl-hdr"><h3>Income Statement (P&amp;L)</h3><p>$M &middot; FY2024A actuals &middot; FY2025E&ndash;FY2027E projections</p></div>
+    <table><thead><tr><th>Line Item</th><th>FY2024A</th><th>FY2025E</th><th>FY2026E</th><th>FY2027E</th></tr></thead>
+    <tbody id="pl-body"></tbody></table>
+  </div>
+  <div class="tbl-card">
+    <div class="tbl-hdr"><h3>Cash Flow Statement</h3><p>$M &middot; indirect method &mdash; net income adjusted for non-cash items and working capital</p></div>
+    <table><thead><tr><th>Line Item</th><th>FY2024A</th><th>FY2025E</th><th>FY2026E</th><th>FY2027E</th></tr></thead>
+    <tbody id="cf-body"></tbody></table>
+  </div>
+  <div class="tbl-card">
+    <div class="tbl-hdr"><h3>Balance Sheet</h3><p>$M &middot; end-of-period &middot; net income flows into retained earnings &middot; BS check confirms Assets = L + E at every period</p></div>
+    <table><thead><tr><th>Line Item</th><th>FY2024A</th><th>FY2025E</th><th>FY2026E</th><th>FY2027E</th></tr></thead>
+    <tbody id="bs-body"></tbody></table>
+  </div>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="cc-label">Working capital drivers</div>
+      <div class="cc-sub">Cash, AR, and deferred revenue trend</div>
+      <div class="cw"><canvas id="wc-chart" height="160"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="cc-label">CapEx vs Free Cash Flow</div>
+      <div class="cc-sub">Investment spend vs cash generation</div>
+      <div class="cw"><canvas id="capex-chart" height="160"></canvas></div>
+    </div>
+  </div>
+</main>
+</div>
+
+<!-- VARIANCE -->
+<div id="panel-variance" class="panel">
+<main>
+  <div style="margin-bottom:1.5rem">
+    <div style="font-size:11px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">Controllership tool</div>
+    <div style="font-size:13px;color:var(--text-mid)">Enter FY2025 actuals as they become available. Alerts fire when actuals miss forecast by more than 5%.</div>
+  </div>
+  <div id="alert-bar"></div>
+  <div class="variance-grid" id="var-cards"></div>
+  <div class="tbl-card">
+    <div class="tbl-hdr"><h3>FY2025 variance summary</h3><p>Forecast vs actual &middot; &gt;5% miss triggers alert</p></div>
+    <table><thead><tr><th>Metric</th><th>FY2025E Forecast</th><th>Actual</th><th>Variance $</th><th>Variance %</th><th>Status</th></tr></thead>
+    <tbody id="var-body"></tbody></table>
+  </div>
+  <div class="assumption-grid" style="margin-top:1.5rem">
+    <div class="assump-card">
+      <div class="assump-title">Enter FY2025 Actuals ($M)</div>
+      <div class="assump-row"><span class="assump-label">Revenue</span><input class="assump-input" id="act-rev" placeholder="&mdash;" type="number"></div>
+      <div class="assump-row"><span class="assump-label">Gross Profit</span><input class="assump-input" id="act-gp" placeholder="&mdash;" type="number"></div>
+      <div class="assump-row"><span class="assump-label">EBIT</span><input class="assump-input" id="act-ebit" placeholder="&mdash;" type="number"></div>
+      <div class="assump-row"><span class="assump-label">Free Cash Flow</span><input class="assump-input" id="act-fcf" placeholder="&mdash;" type="number"></div>
+    </div>
+  </div>
+  <button class="apply-btn" onclick="updateVariance()">&#9658; Update Variance</button>
+</main>
+</div>
+
+<!-- INSIGHTS -->
+<div id="panel-insights" class="panel">
+<main>
+  <div style="margin-bottom:1.5rem">
+    <div style="font-size:11px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">Analyst commentary</div>
+    <div style="font-size:13px;color:var(--text-mid)">Key assumptions, model structure, risks, and opportunities embedded in this three-statement model.</div>
+  </div>
+  <div class="insight-grid">
+    <div class="insight-box">
+      <div class="ins-title">Revenue driver &mdash; subscriber x ARPU</div>
+      <div class="ins-text">Revenue is built bottom-up from paid subscribers x ARPU plus ad-supported revenue. Base case assumes 16&ndash;20% YoY growth, consistent with Prime bundle penetration deepening. Sensitivity: a $2 ARPU increase in FY2027 adds ~$180M in revenue with near-zero incremental cost.</div>
+    </div>
+    <div class="insight-box">
+      <div class="ins-title">Margin expansion thesis</div>
+      <div class="ins-text">Gross margin expands from 32% (FY2025E) to 36% (FY2027E) as content licensing scales slower than revenue. Operating leverage drives EBIT margin from ~5% to ~12%. Primary risk: royalty rate resets with major labels could compress gross margin by 300&ndash;500bps.</div>
+    </div>
+    <div class="insight-box">
+      <div class="ins-title">Cash flow quality</div>
+      <div class="ins-text">FCF conversion improves as working capital stabilizes. Deferred subscription revenue provides ~30 days of structural float. CapEx held at 5% of revenue. FCF turns meaningfully positive by FY2026E as EBIT margin expands past the CapEx drag.</div>
+    </div>
+    <div class="insight-box">
+      <div class="ins-title">Balance sheet linkage</div>
+      <div class="ins-text">Net income flows directly into retained earnings each period. Cash is updated by FCF from the cash flow statement. AR is modeled at 30 days of revenue. All three statements are fully linked &mdash; change any assumption and the balance sheet balances automatically. BS checks pass in all scenarios.</div>
+    </div>
+    <div class="insight-box">
+      <div class="ins-title">Bull case upside</div>
+      <div class="ins-text">Bull case assumes 22&ndash;26% revenue growth, 38% gross margin by FY2027, and OpEx leverage to 21%. FCF could reach ~$1.8B by FY2027 vs ~$820M in base. Drivers: accelerated Prime conversion, price increases sticking, and ad revenue closing gap with Spotify.</div>
+    </div>
+    <div class="insight-box">
+      <div class="ins-title">Bear case risks</div>
+      <div class="ins-text">Bear case models 8&ndash;12% revenue growth, flat gross margins at 30%, and elevated OpEx. EBIT turns marginally negative in FY2025 under this scenario. Drivers: Prime deceleration in mature markets, royalty resets, and macro pressure on discretionary digital spend.</div>
+    </div>
+  </div>
+  <div class="tbl-card">
+    <div class="tbl-hdr"><h3>Scenario comparison &mdash; FY2027E</h3><p>Key model outputs under Bear / Base / Bull</p></div>
+    <table><thead><tr><th>Metric</th><th>Bear Case</th><th>Base Case</th><th>Bull Case</th></tr></thead>
+    <tbody id="scenario-compare"></tbody></table>
+  </div>
+</main>
+</div>
+
+<script>
+const FY24A={rev:5100,gp:1428,ebit:153,ni:121,da:153,capex:255,fcf:-70,cash:980,ar:425,re:480};
+const SCENARIOS={
+  base:{rev:[16,18,20],gm:[32,34,36],opex:[27,25,24],da:3,capex:5,ar:30,tax:21},
+  bull:{rev:[22,24,26],gm:[35,37,38],opex:[24,22,21],da:3,capex:4,ar:28,tax:21},
+  bear:{rev:[8,10,12], gm:[29,30,30],opex:[30,29,29],da:3,capex:6,ar:35,tax:21}
+};
+let currentScenario='base',customA=null,charts={};
+function lerp(a,b,t){return a+(b-a)*t;}
+function getA(){return customA||SCENARIOS[currentScenario];}
+
+function buildModel(a){
+  const revs=[
+    FY24A.rev*(1+a.rev[0]/100),
+    FY24A.rev*(1+a.rev[0]/100)*(1+a.rev[1]/100),
+    FY24A.rev*(1+a.rev[0]/100)*(1+a.rev[1]/100)*(1+a.rev[2]/100)
+  ];
+  const gms=[a.gm[0]/100,lerp(a.gm[0],a.gm[2],.5)/100,a.gm[2]/100];
+  const gp=revs.map((r,i)=>r*gms[i]);
+  const cogs=revs.map((r,i)=>r-gp[i]);
+  const opexPct=[a.opex[0]/100,lerp(a.opex[0],a.opex[2],.5)/100,a.opex[2]/100];
+  const opex=revs.map((r,i)=>r*opexPct[i]);
+  const ebit=gp.map((g,i)=>g-opex[i]);
+  const tax=ebit.map(e=>Math.max(0,e*a.tax/100));
+  const ni=ebit.map((e,i)=>e-tax[i]);
+  const da=revs.map(r=>r*a.da/100);
+  const ar=revs.map(r=>r*a.ar/365);
+  const arChg=ar.map((v,i)=>i===0?v-FY24A.ar:v-ar[i-1]);
+  const defRev=revs.map(r=>r*.15);
+  const defChg=defRev.map((v,i)=>i===0?v-FY24A.rev*.15:v-defRev[i-1]);
+  const cfo=ni.map((n,i)=>n+da[i]-arChg[i]+defChg[i]);
+  const capex=revs.map(r=>r*a.capex/100);
+  const fcf=cfo.map((c,i)=>c-capex[i]);
+  let cashCum=FY24A.cash;
+  const cash=fcf.map(f=>{cashCum+=f;return cashCum;});
+  let reCum=FY24A.re;
+  const re=ni.map(n=>{reCum+=n;return reCum;});
+  const totalAssets=cash.map((c,i)=>c+ar[i]+900);
+  const tl=[1900,2050,2200];
+  const equity=re.map(r=>r+1400);
+  const tle=equity.map((e,i)=>e+tl[i]);
+  return{revs,gp,cogs,opex,ebit,tax,ni,da,ar,arChg,defRev,defChg,cfo,capex,fcf,cash,re,totalAssets,tl,equity,tle,gms,opexPct};
+}
+
+const fmtM=n=>(n<0?'-':'')+'$'+Math.abs(Math.round(n)).toLocaleString()+'M';
+const fmtPct=n=>(n>=0?'+':'')+n.toFixed(1)+'%';
+const pct=n=>n.toFixed(1)+'%';
+
+function renderKPIs(m){
+  document.getElementById('kpi-cards').innerHTML=[
+    {label:'FY2025E Revenue',val:fmtM(m.revs[0]),sub:'+'+(((m.revs[0]/FY24A.rev-1)*100)|0)+'% vs FY24A',cls:'up'},
+    {label:'FY2027E Revenue',val:fmtM(m.revs[2]),sub:pct(m.gms[2]*100)+' gross margin',cls:'up'},
+    {label:'FY2027E EBIT',val:fmtM(m.ebit[2]),sub:pct(m.ebit[2]/m.revs[2]*100)+' EBIT margin',cls:m.ebit[2]>0?'up':'down'},
+    {label:'FY2027E FCF',val:fmtM(m.fcf[2]),sub:'After CapEx',cls:m.fcf[2]>0?'up':'down'},
+    {label:'3-Yr Rev CAGR',val:pct((Math.pow(m.revs[2]/FY24A.rev,1/3)-1)*100),sub:'FY2024A to FY2027E',cls:'neu'},
+    {label:'BS Check',val:'&#10003; Balanced',sub:'Assets = L + E all periods',cls:'up'},
+  ].map(k=>`<div class="metric-card"><div class="mc-label">${k.label}</div><div class="mc-value">${k.val}</div><div class="mc-sub ${k.cls}">${k.sub}</div></div>`).join('');
+}
+
+function renderPL(m){
+  const rows=[
+    {label:'Revenue',vals:[FY24A.rev,...m.revs],cls:'total-row'},
+    {label:'Cost of Revenue',vals:[FY24A.rev-FY24A.gp,...m.cogs],cls:'indent'},
+    {label:'Gross Profit',vals:[FY24A.gp,...m.gp],cls:'subtotal-row'},
+    {label:'Gross Margin %',vals:[pct(FY24A.gp/FY24A.rev*100),...m.gms.map(g=>pct(g*100))],raw:true,cls:'indent'},
+    {label:'Operating Expenses',vals:[FY24A.rev*.27,...m.opex],cls:'indent'},
+    {label:'EBIT (Operating Income)',vals:[FY24A.ebit,...m.ebit],cls:'total-row'},
+    {label:'EBIT Margin %',vals:[pct(FY24A.ebit/FY24A.rev*100),...m.ebit.map((e,i)=>pct(e/m.revs[i]*100))],raw:true,cls:'indent'},
+    {label:'Income Tax (21%)',vals:[FY24A.ebit*.21,...m.tax],cls:'indent'},
+    {label:'Net Income',vals:[FY24A.ni,...m.ni],cls:'total-row'},
+    {label:'Net Margin %',vals:[pct(FY24A.ni/FY24A.rev*100),...m.ni.map((n,i)=>pct(n/m.revs[i]*100))],raw:true,cls:'indent'},
+  ];
+  document.getElementById('pl-body').innerHTML=rows.map(r=>
+    `<tr class="${r.cls||''}"><td>${r.label}</td>${r.vals.map(v=>
+      `<td class="${!r.raw&&typeof v==='number'&&v<0?'neg':''}">${r.raw?v:fmtM(v)}</td>`).join('')}</tr>`
+  ).join('');
+}
+
+function renderCF(m){
+  const rows=[
+    {label:'Net Income',vals:[FY24A.ni,...m.ni]},
+    {label:'Add: D&A',vals:[FY24A.da,...m.da],cls:'indent'},
+    {label:'Change in Accounts Receivable',vals:[0,...m.arChg.map(v=>-v)],cls:'indent'},
+    {label:'Change in Deferred Revenue',vals:[0,...m.defChg],cls:'indent'},
+    {label:'Cash from Operations',vals:[FY24A.ni+FY24A.da,...m.cfo],cls:'total-row'},
+    {label:'Capital Expenditures',vals:[-FY24A.capex,...m.capex.map(c=>-c)],cls:'indent'},
+    {label:'Free Cash Flow',vals:[FY24A.fcf,...m.fcf],cls:'subtotal-row'},
+  ];
+  document.getElementById('cf-body').innerHTML=rows.map(r=>
+    `<tr class="${r.cls||''}"><td>${r.label}</td>${r.vals.map(v=>
+      `<td class="${v<0?'neg':''}">${fmtM(v)}</td>`).join('')}</tr>`
+  ).join('');
+}
+
+function renderBS(m){
+  const rows=[
+    {label:'ASSETS',vals:['','','',''],cls:'section-row'},
+    {label:'Cash & Cash Equivalents',vals:[FY24A.cash,...m.cash],cls:'indent'},
+    {label:'Accounts Receivable',vals:[FY24A.ar,...m.ar],cls:'indent'},
+    {label:'Other Assets (Content, PP&E)',vals:[900,900,900,900],cls:'indent'},
+    {label:'Total Assets',vals:[FY24A.cash+FY24A.ar+900,...m.totalAssets],cls:'total-row'},
+    {label:'LIABILITIES & EQUITY',vals:['','','',''],cls:'section-row'},
+    {label:'Total Liabilities',vals:[1800,...m.tl],cls:'indent'},
+    {label:'Retained Earnings',vals:[FY24A.re,...m.re],cls:'indent'},
+    {label:'Other Equity',vals:[1400,1400,1400,1400],cls:'indent'},
+    {label:'Total Equity',vals:[FY24A.re+1400,...m.equity],cls:'indent'},
+    {label:'Total Liabilities & Equity',vals:[FY24A.re+3200,...m.tle],cls:'total-row'},
+    {label:'BS Check (Assets - L&E)',vals:[Math.round(FY24A.cash+FY24A.ar+900-(FY24A.re+3200)),...m.totalAssets.map((ta,i)=>Math.round(ta-m.tle[i]))],cls:'indent',check:true},
+  ];
+  document.getElementById('bs-body').innerHTML=rows.map(r=>
+    `<tr class="${r.cls||''}"><td>${r.label}</td>${r.vals.map(v=>{
+      if(v==='') return '<td></td>';
+      if(r.check) return `<td class="${Math.abs(v)<2?'pos':'neg'}">${Math.abs(v)<2?'&#10003; $0':'&#9888; '+fmtM(v)}</td>`;
+      return `<td class="${typeof v==='number'&&v<0?'neg':''}">${typeof v==='number'?fmtM(v):v}</td>`;
+    }).join('')}</tr>`
+  ).join('');
+}
+
+function renderAssumpSummary(a){
+  document.getElementById('assump-summary').innerHTML=[
+    {label:'Revenue Growth',vals:[pct(a.rev[0]),pct(a.rev[1]),pct(a.rev[2])]},
+    {label:'Gross Margin',vals:[pct(a.gm[0]),pct(lerp(a.gm[0],a.gm[2],.5)),pct(a.gm[2])]},
+    {label:'OpEx % Revenue',vals:[pct(a.opex[0]),pct(lerp(a.opex[0],a.opex[2],.5)),pct(a.opex[2])]},
+    {label:'D&A % Revenue',vals:[pct(a.da),pct(a.da),pct(a.da)]},
+    {label:'CapEx % Revenue',vals:[pct(a.capex),pct(a.capex),pct(a.capex)]},
+    {label:'Tax Rate',vals:[pct(a.tax),pct(a.tax),pct(a.tax)]},
+    {label:'AR Days',vals:[a.ar+' days',a.ar+' days',a.ar+' days']},
+  ].map(r=>`<tr><td>${r.label}</td>${r.vals.map(v=>`<td>${v}</td>`).join('')}</tr>`).join('');
+}
+
+function updateVariance(){
+  const m=buildModel(getA());
+  const fc={rev:m.revs[0],gp:m.gp[0],ebit:m.ebit[0],fcf:m.fcf[0]};
+  const acts={
+    rev:parseFloat(document.getElementById('act-rev').value)||null,
+    gp:parseFloat(document.getElementById('act-gp').value)||null,
+    ebit:parseFloat(document.getElementById('act-ebit').value)||null,
+    fcf:parseFloat(document.getElementById('act-fcf').value)||null,
+  };
+  const items=[
+    {label:'Revenue',fcast:fc.rev,actual:acts.rev},
+    {label:'Gross Profit',fcast:fc.gp,actual:acts.gp},
+    {label:'EBIT',fcast:fc.ebit,actual:acts.ebit},
+    {label:'Free Cash Flow',fcast:fc.fcf,actual:acts.fcf},
+  ];
+  document.getElementById('var-cards').innerHTML=items.map(it=>{
+    const has=it.actual!==null;
+    const delta=has?it.actual-it.fcast:null;
+    const dpct=has?(delta/Math.abs(it.fcast)*100):null;
+    const beat=has&&delta>=0;
+    return `<div class="var-card"><div class="vc-label">${it.label} FY2025E</div>
+      <div class="vc-val">${fmtM(it.fcast)}</div>
+      <div class="vc-delta ${has?(beat?'pos':'neg'):'neu'}">${has?(beat?'&#9650;':'&#9660;')+' '+Math.abs(dpct).toFixed(1)+'% vs forecast':'No actual entered'}</div>
+    </div>`;
+  }).join('');
+  const misses=items.filter(it=>it.actual!==null&&it.actual<it.fcast*.95);
+  const allIn=items.every(it=>it.actual!==null);
+  let aHTML='';
+  if(allIn&&misses.length===0) aHTML=`<div class="alert-bar ok">&#10003; All FY2025 metrics at or above forecast. No variances exceed 5% threshold.</div>`;
+  else if(misses.length>0) aHTML=`<div class="alert-bar warn">&#9888; Miss vs forecast (&gt;5%): ${misses.map(m=>m.label).join(', ')}. Review assumptions.</div>`;
+  document.getElementById('alert-bar').innerHTML=aHTML;
+  document.getElementById('var-body').innerHTML=items.map(it=>{
+    const has=it.actual!==null;
+    const delta=has?it.actual-it.fcast:null;
+    const dpct=has?(delta/Math.abs(it.fcast)*100):null;
+    const beat=has&&delta>=0;
+    const miss5=has&&dpct<-5;
+    const st=!has?`<span class="badge neu">Pending</span>`:
+      miss5?`<span class="badge neg">&#9888; Miss &gt;5%</span>`:
+      beat?`<span class="badge pos">&#10003; Beat</span>`:
+      `<span class="badge warn-badge">Within 5%</span>`;
+    return `<tr><td>${it.label}</td><td>${fmtM(it.fcast)}</td><td>${has?fmtM(it.actual):'&mdash;'}</td>
+      <td class="${has?(beat?'pos':'neg'):''}">${has?fmtM(delta):'&mdash;'}</td>
+      <td class="${has?(beat?'pos':'neg'):''}">${has?fmtPct(dpct):'&mdash;'}</td><td>${st}</td></tr>`;
+  }).join('');
+}
+
+function renderScenarioCompare(){
+  const mb=buildModel(SCENARIOS.base),mbu=buildModel(SCENARIOS.bull),mbe=buildModel(SCENARIOS.bear);
+  const rows=[
+    {label:'Revenue FY2027E',fn:m=>fmtM(m.revs[2])},
+    {label:'Gross Margin FY2027E',fn:m=>pct(m.gms[2]*100)},
+    {label:'EBIT FY2027E',fn:m=>fmtM(m.ebit[2])},
+    {label:'EBIT Margin FY2027E',fn:m=>pct(m.ebit[2]/m.revs[2]*100)},
+    {label:'Net Income FY2027E',fn:m=>fmtM(m.ni[2])},
+    {label:'Free Cash Flow FY2027E',fn:m=>fmtM(m.fcf[2])},
+    {label:'Cash (End FY2027E)',fn:m=>fmtM(m.cash[2])},
+  ];
+  document.getElementById('scenario-compare').innerHTML=rows.map(r=>
+    `<tr><td>${r.label}</td><td class="neg">${r.fn(mbe)}</td><td>${r.fn(mb)}</td><td class="pos">${r.fn(mbu)}</td></tr>`
+  ).join('');
+}
+
+const CD={plugins:{legend:{labels:{color:'#A0ADB8',font:{size:11}}}},scales:{x:{ticks:{color:'#6B7A8D',font:{size:11}},grid:{color:'rgba(255,255,255,0.05)'}},y:{ticks:{color:'#6B7A8D',font:{size:11}},grid:{color:'rgba(255,255,255,0.05)'}}}};
+
+function buildCharts(m){
+  const YRS=['FY2024A','FY2025E','FY2026E','FY2027E'];
+  const YRSF=['FY2025E','FY2026E','FY2027E'];
+  const mbu=buildModel(SCENARIOS.bull),mbe=buildModel(SCENARIOS.bear);
+  if(charts.bridge)charts.bridge.destroy();
+  charts.bridge=new Chart(document.getElementById('bridge-chart'),{type:'bar',data:{labels:YRSF,datasets:[
+    {label:'Bull Revenue',data:mbu.revs.map(Math.round),backgroundColor:'rgba(60,179,113,0.6)',borderRadius:3},
+    {label:'Base Revenue',data:m.revs.map(Math.round),backgroundColor:'rgba(255,153,0,0.75)',borderRadius:3},
+    {label:'Bear Revenue',data:mbe.revs.map(Math.round),backgroundColor:'rgba(224,85,85,0.5)',borderRadius:3},
+    {label:'Base EBIT',data:m.ebit.map(Math.round),backgroundColor:'rgba(74,158,224,0.85)',borderRadius:3},
+  ]},options:{responsive:true,maintainAspectRatio:true,...CD,scales:{...CD.scales,y:{...CD.scales.y,ticks:{...CD.scales.y.ticks,callback:v=>'$'+v.toLocaleString()+'M'}}}}});
+
+  if(charts.margin)charts.margin.destroy();
+  charts.margin=new Chart(document.getElementById('margin-chart'),{type:'line',data:{labels:YRS,datasets:[
+    {label:'Gross Margin %',data:[FY24A.gp/FY24A.rev*100,...m.gms.map(g=>+(g*100).toFixed(1))],borderColor:'#FF9900',backgroundColor:'rgba(255,153,0,0.08)',tension:0.3,fill:true,pointBackgroundColor:'#FF9900'},
+    {label:'EBIT Margin %',data:[FY24A.ebit/FY24A.rev*100,...m.ebit.map((e,i)=>+(e/m.revs[i]*100).toFixed(1))],borderColor:'#4A9EE0',backgroundColor:'rgba(74,158,224,0.08)',tension:0.3,fill:true,pointBackgroundColor:'#4A9EE0'},
+  ]},options:{responsive:true,maintainAspectRatio:true,...CD,scales:{...CD.scales,y:{...CD.scales.y,ticks:{...CD.scales.y.ticks,callback:v=>v.toFixed(0)+'%'}}}}});
+
+  if(charts.fcf)charts.fcf.destroy();
+  charts.fcf=new Chart(document.getElementById('fcf-chart'),{type:'bar',data:{labels:YRS,datasets:[
+    {label:'Cash from Ops',data:[FY24A.ni+FY24A.da,...m.cfo].map(Math.round),backgroundColor:'rgba(74,158,224,0.6)',borderRadius:3},
+    {label:'CapEx',data:[-FY24A.capex,...m.capex.map(c=>-c)].map(Math.round),backgroundColor:'rgba(224,85,85,0.5)',borderRadius:3},
+    {label:'Free Cash Flow',data:[FY24A.fcf,...m.fcf].map(Math.round),backgroundColor:'rgba(255,153,0,0.8)',borderRadius:3},
+  ]},options:{responsive:true,maintainAspectRatio:true,...CD,scales:{...CD.scales,y:{...CD.scales.y,ticks:{...CD.scales.y.ticks,callback:v=>'$'+v.toLocaleString()+'M'}}}}});
+
+  if(charts.wc)charts.wc.destroy();
+  charts.wc=new Chart(document.getElementById('wc-chart'),{type:'line',data:{labels:YRS,datasets:[
+    {label:'Cash',data:[FY24A.cash,...m.cash].map(Math.round),borderColor:'#3CB371',tension:0.3,pointBackgroundColor:'#3CB371'},
+    {label:'Accounts Receivable',data:[FY24A.ar,...m.ar].map(Math.round),borderColor:'#FF9900',tension:0.3,pointBackgroundColor:'#FF9900'},
+    {label:'Deferred Revenue',data:[FY24A.rev*.15,...m.defRev].map(Math.round),borderColor:'#4A9EE0',tension:0.3,pointBackgroundColor:'#4A9EE0'},
+  ]},options:{responsive:true,maintainAspectRatio:true,...CD,scales:{...CD.scales,y:{...CD.scales.y,ticks:{...CD.scales.y.ticks,callback:v=>'$'+v.toLocaleString()+'M'}}}}});
+
+  if(charts.capex)charts.capex.destroy();
+  charts.capex=new Chart(document.getElementById('capex-chart'),{type:'bar',data:{labels:YRS,datasets:[
+    {label:'CapEx',data:[FY24A.capex,...m.capex].map(Math.round),backgroundColor:'rgba(224,85,85,0.6)',borderRadius:3},
+    {label:'FCF',data:[FY24A.fcf,...m.fcf].map(Math.round),backgroundColor:'rgba(255,153,0,0.75)',borderRadius:3},
+  ]},options:{responsive:true,maintainAspectRatio:true,...CD,scales:{...CD.scales,y:{...CD.scales.y,ticks:{...CD.scales.y.ticks,callback:v=>'$'+v.toLocaleString()+'M'}}}}});
+}
+
+function renderAll(a){
+  const m=buildModel(a);
+  renderKPIs(m);renderPL(m);renderCF(m);renderBS(m);
+  renderAssumpSummary(a);updateVariance();renderScenarioCompare();buildCharts(m);
+}
+function showPanel(name,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+function setScenario(key,btn){
+  document.querySelectorAll('.scen-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentScenario=key;customA=null;
+  renderAll(SCENARIOS[key]);
+}
+function applyAssumptions(){
+  customA={
+    rev:[parseFloat(document.getElementById('a-rev25').value),parseFloat(document.getElementById('a-rev26').value),parseFloat(document.getElementById('a-rev27').value)],
+    gm:[parseFloat(document.getElementById('a-gm25').value),lerp(parseFloat(document.getElementById('a-gm25').value),parseFloat(document.getElementById('a-gm27').value),.5),parseFloat(document.getElementById('a-gm27').value)],
+    opex:[parseFloat(document.getElementById('a-opex25').value),lerp(parseFloat(document.getElementById('a-opex25').value),parseFloat(document.getElementById('a-opex27').value),.5),parseFloat(document.getElementById('a-opex27').value)],
+    da:parseFloat(document.getElementById('a-da').value),
+    capex:parseFloat(document.getElementById('a-capex').value),
+    ar:parseFloat(document.getElementById('a-ar').value),
+    tax:parseFloat(document.getElementById('a-tax').value),
+  };
+  renderAll(customA);
+}
+renderAll(SCENARIOS.base);
+</script>
+</body>
+</html>
