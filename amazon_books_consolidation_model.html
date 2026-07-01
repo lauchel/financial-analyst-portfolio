@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Marketplace Consolidation Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --cream: #F3ECDC;
+    --page: #FBF7EC;
+    --ink: #2B2620;
+    --ink-soft: #5C5240;
+    --burgundy: #7A2E2E;
+    --burgundy-dark: #5A2020;
+    --gold: #A9812F;
+    --gold-light: #D9C089;
+    --sage: #4F6B57;
+    --rule: #C9BC9C;
+    --shadow: rgba(43,38,32,0.14);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Source Serif 4', serif;
+    padding: 0 0 4rem;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 2rem; }
+
+  header.hero {
+    padding: 4rem 2rem 3rem;
+    text-align: center;
+    border-bottom: 3px double var(--rule);
+    margin-bottom: 0;
+  }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--burgundy);
+    margin-bottom: 0.8rem;
+  }
+  h1.title {
+    font-family: 'Fraunces', serif;
+    font-optical-sizing: auto;
+    font-weight: 500;
+    font-size: clamp(32px, 5vw, 52px);
+    margin: 0 0 0.6rem;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    font-size: 16px;
+    color: var(--ink-soft);
+    max-width: 560px;
+    margin: 0 auto;
+    font-style: italic;
+  }
+
+  .controls {
+    max-width: 980px;
+    margin: 2.5rem auto 0;
+    padding: 1.5rem 2rem;
+    background: var(--page);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+  }
+  .controls-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    align-items: flex-end;
+  }
+  .control-group { flex: 1; min-width: 240px; }
+  .control-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 0.6rem;
+    display: block;
+  }
+  .fx-buttons { display: flex; gap: 0.5rem; }
+  .fx-btn {
+    font-family: 'Source Serif 4', serif;
+    font-size: 14px;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--rule);
+    background: var(--page);
+    color: var(--ink);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s ease;
+  }
+  .fx-btn:hover { border-color: var(--gold); }
+  .fx-btn.active {
+    background: var(--burgundy);
+    border-color: var(--burgundy);
+    color: var(--gold-light);
+  }
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--burgundy);
+  }
+  .slider-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--burgundy);
+    margin-left: 0.5rem;
+  }
+
+  .ledger {
+    max-width: 980px;
+    margin: 2.5rem auto 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--page);
+    box-shadow: 0 6px 24px var(--shadow);
+    position: relative;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .ledger::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: repeating-linear-gradient(to bottom, var(--rule) 0, var(--rule) 6px, transparent 6px, transparent 12px);
+  }
+  .ledger-page { padding: 2rem 2.25rem; }
+  .ledger-page.left { border-right: none; }
+  .page-heading {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 500;
+    margin: 0 0 0.25rem;
+  }
+  .page-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 1.25rem;
+  }
+
+  .entity-tabs {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .entity-tab {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--rule);
+    border-bottom: none;
+    background: var(--cream);
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-radius: 3px 3px 0 0;
+  }
+  .entity-tab.active {
+    background: var(--page);
+    color: var(--burgundy);
+    font-weight: 600;
+    border-color: var(--gold);
+  }
+
+  table.ledger-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  table.ledger-table td, table.ledger-table th {
+    padding: 0.5rem 0.25rem;
+    border-bottom: 1px solid var(--rule);
+    text-align: left;
+  }
+  table.ledger-table th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+  }
+  table.ledger-table td.num, table.ledger-table th.num {
+    text-align: right;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  table.ledger-table tr.total td {
+    border-top: 2px solid var(--ink);
+    border-bottom: none;
+    font-weight: 600;
+    padding-top: 0.75rem;
+  }
+
+  .stamp {
+    margin-top: 1.5rem;
+    border: 2px solid var(--burgundy);
+    border-radius: 50%;
+    width: 130px;
+    height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
+    transform: rotate(-6deg);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+  .stamp-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--burgundy);
+  }
+  .stamp-value {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 22px;
+    color: var(--burgundy);
+    margin-top: 0.2rem;
+  }
+
+  .recon-section {
+    max-width: 980px;
+    margin: 2rem auto 0;
+    padding: 2rem 2.25rem;
+    background: var(--page);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+  }
+
+  .chart-wrap { position: relative; height: 260px; margin-top: 1rem; }
+
+  .footnote {
+    max-width: 980px;
+    margin: 2rem auto 0;
+    padding: 0 2.25rem;
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+
+  @media (max-width: 720px) {
+    .ledger { grid-template-columns: 1fr; }
+    .ledger::before { display: none; }
+    .ledger-page.left { border-bottom: 3px double var(--rule); }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="eyebrow">FP&amp;A portfolio project</div>
+  <h1 class="title">Global marketplace consolidation model</h1>
+  <p class="subtitle">A multi entity, multi currency P&amp;L roll up for a rare and used book marketplace operating across four countries, with FX scenario analysis and an intercompany reconciliation schedule.</p>
+</header>
+
+<div class="wrap">
+
+<div class="controls">
+  <div class="controls-row">
+    <div class="control-group">
+      <span class="control-label">FX scenario</span>
+      <div class="fx-buttons" id="fxButtons">
+        <button class="fx-btn" data-scenario="strong">Strong dollar</button>
+        <button class="fx-btn active" data-scenario="base">Base case</button>
+        <button class="fx-btn" data-scenario="weak">Weak dollar</button>
+      </div>
+    </div>
+    <div class="control-group">
+      <span class="control-label">Blended take rate</span>
+      <div style="display:flex; align-items:center;">
+        <input type="range" id="takeRate" min="8" max="15" step="0.5" value="12">
+        <span class="slider-value" id="takeRateVal">12.0%</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ledger">
+  <div class="ledger-page left">
+    <div class="entity-tabs" id="entityTabs"></div>
+    <div class="page-heading" id="entityName">US Marketplace</div>
+    <div class="page-sub" id="entitySub">Rare and collectible &middot; USD</div>
+    <table class="ledger-table">
+      <tr><th>Line item</th><th class="num">Local currency</th></tr>
+      <tr><td>Monthly GMV</td><td class="num" id="entGmv">-</td></tr>
+      <tr><td>Blended take rate</td><td class="num" id="entTakeRate">-</td></tr>
+      <tr><td>Net platform revenue</td><td class="num" id="entNetRev">-</td></tr>
+      <tr><td>FX rate to USD</td><td class="num" id="entFx">-</td></tr>
+      <tr class="total"><td>Revenue, USD equivalent</td><td class="num" id="entUsd">-</td></tr>
+    </table>
+  </div>
+  <div class="ledger-page right">
+    <div class="page-heading">Consolidated, USD</div>
+    <div class="page-sub" id="scenarioLabel">Base case scenario</div>
+    <table class="ledger-table">
+      <tr><th>Line item</th><th class="num">USD</th></tr>
+      <tr><td>Gross platform revenue, all entities</td><td class="num" id="consGross">-</td></tr>
+      <tr><td>Intercompany elimination</td><td class="num" id="consElim">-</td></tr>
+      <tr><td>Shared platform overhead</td><td class="num" id="consOverhead">-</td></tr>
+      <tr class="total"><td>Consolidated net revenue</td><td class="num" id="consNet">-</td></tr>
+    </table>
+    <div class="stamp">
+      <div class="stamp-label">Consolidated</div>
+      <div class="stamp-value" id="stampVal">$-</div>
+    </div>
+  </div>
+</div>
+
+<div class="recon-section">
+  <div class="page-heading">Entity contribution to consolidated revenue</div>
+  <div class="page-sub">Under current scenario and take rate assumptions</div>
+  <div class="chart-wrap">
+    <canvas id="contributionChart" role="img" aria-label="Bar chart of each entity's USD revenue contribution to the consolidated total">Entity revenue contribution chart</canvas>
+  </div>
+</div>
+
+<p class="footnote">Model built for portfolio demonstration. Entity names and figures are illustrative, structured to reflect the multi entity, multi currency complexity of a global marketplace business such as AbeBooks. Full interactive version and methodology notes at lauchel.github.io/financial-analyst-portfolio.</p>
+
+</div>
+
+<script>
+const entities = [
+  { key: "us", name: "US Marketplace", sub: "Rare and collectible", ccy: "USD", gmv: 2400, symbol: "$" },
+  { key: "uk", name: "UK Marketplace", sub: "Vintage and used", ccy: "GBP", gmv: 1450, symbol: "\u00A3" },
+  { key: "de", name: "Germany Marketplace", sub: "Antiquarian and academic", ccy: "EUR", gmv: 980, symbol: "\u20AC" },
+  { key: "au", name: "Australia Marketplace", sub: "General used", ccy: "AUD", gmv: 620, symbol: "A$" }
+];
+
+const fxScenarios = {
+  strong: { label: "Strong dollar scenario", GBP: 1.15, EUR: 0.98, AUD: 0.60 },
+  base:   { label: "Base case scenario", GBP: 1.27, EUR: 1.08, AUD: 0.66 },
+  weak:   { label: "Weak dollar scenario", GBP: 1.38, EUR: 1.18, AUD: 0.72 }
+};
+
+let state = { scenario: "base", takeRate: 12, activeEntity: "us" };
+let chart;
+
+function fxFor(ccy, scenario) {
+  if (ccy === "USD") return 1;
+  return fxScenarios[scenario][ccy];
+}
+
+function fmt(n, symbol) {
+  return symbol + Math.round(n).toLocaleString();
+}
+
+function computeAll() {
+  const rate = state.takeRate / 100;
+  return entities.map(e => {
+    const fx = fxFor(e.ccy, state.scenario);
+    const netLocal = e.gmv * rate;
+    const usd = netLocal * fx;
+    return { ...e, fx, netLocal, usd };
+  });
+}
+
+function render() {
+  const all = computeAll();
+  const active = all.find(e => e.key === state.activeEntity);
+
+  document.getElementById("entityName").textContent = active.name;
+  document.getElementById("entitySub").textContent = active.sub + " \u00B7 " + active.ccy;
+  document.getElementById("entGmv").textContent = fmt(active.gmv, active.symbol) + "K";
+  document.getElementById("entTakeRate").textContent = state.takeRate.toFixed(1) + "%";
+  document.getElementById("entNetRev").textContent = fmt(active.netLocal, active.symbol) + "K";
+  document.getElementById("entFx").textContent = active.ccy === "USD" ? "1.00" : active.fx.toFixed(2);
+  document.getElementById("entUsd").textContent = fmt(active.usd, "$") + "K";
+
+  const grossUsd = all.reduce((s, e) => s + e.usd, 0);
+  const elim = grossUsd * 0.02;
+  const overhead = 150;
+  const netConsolidated = grossUsd - elim - overhead;
+
+  document.getElementById("scenarioLabel").textContent = fxScenarios[state.scenario].label;
+  document.getElementById("consGross").textContent = fmt(grossUsd, "$") + "K";
+  document.getElementById("consElim").textContent = "(" + fmt(elim, "$") + "K)";
+  document.getElementById("consOverhead").textContent = "(" + fmt(overhead, "$") + "K)";
+  document.getElementById("consNet").textContent = fmt(netConsolidated, "$") + "K";
+  document.getElementById("stampVal").textContent = fmt(netConsolidated, "$") + "K";
+
+  updateChart(all);
+}
+
+function updateChart(all) {
+  const ctx = document.getElementById("contributionChart");
+  const labels = all.map(e => e.name.replace(" Marketplace", ""));
+  const data = all.map(e => Math.round(e.usd));
+  if (chart) {
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = data;
+    chart.update();
+    return;
+  }
+  chart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [{ label: "USD revenue (K)", data: data, backgroundColor: "#7A2E2E", borderRadius: 3, maxBarThickness: 48 }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: v => "$" + v + "K" }, grid: { color: "#E4DCC6" } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+function buildTabs() {
+  const container = document.getElementById("entityTabs");
+  entities.forEach(e => {
+    const btn = document.createElement("button");
+    btn.className = "entity-tab" + (e.key === state.activeEntity ? " active" : "");
+    btn.textContent = e.name.replace(" Marketplace", "");
+    btn.addEventListener("click", () => {
+      state.activeEntity = e.key;
+      document.querySelectorAll(".entity-tab").forEach(t => t.classList.remove("active"));
+      btn.classList.add("active");
+      render();
+    });
+    container.appendChild(btn);
+  });
+}
+
+document.getElementById("fxButtons").addEventListener("click", (ev) => {
+  const btn = ev.target.closest(".fx-btn");
+  if (!btn) return;
+  state.scenario = btn.dataset.scenario;
+  document.querySelectorAll(".fx-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+});
+
+document.getElementById("takeRate").addEventListener("input", (ev) => {
+  state.takeRate = parseFloat(ev.target.value);
+  document.getElementById("takeRateVal").textContent = state.takeRate.toFixed(1) + "%";
+  render();
+});
+
+buildTabs();
+render();
+</script>
+
+</body>
+</html>
