@@ -245,6 +245,43 @@
 
   .chart-wrap { position: relative; height: 260px; margin-top: 1rem; }
 
+  .findings-section {
+    max-width: 980px;
+    margin: 2rem auto 0;
+    padding: 2rem 2.25rem;
+    background: var(--page);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+  }
+  .findings-list { margin-top: 1rem; }
+  .finding {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 1rem;
+    padding: 0.9rem 0;
+    border-top: 1px solid var(--rule);
+  }
+  .finding:first-child { border-top: none; }
+  .finding-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--burgundy);
+  }
+  .finding-unit {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    display: block;
+    margin-top: 2px;
+  }
+  .finding-text {
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.5;
+    padding-top: 2px;
+  }
+
   .footnote {
     max-width: 980px;
     margin: 2rem auto 0;
@@ -327,6 +364,29 @@
   <div class="page-sub">Under current scenario and take rate assumptions</div>
   <div class="chart-wrap">
     <canvas id="contributionChart" role="img" aria-label="Bar chart of each entity's USD revenue contribution to the consolidated total">Entity revenue contribution chart</canvas>
+  </div>
+</div>
+
+<div class="findings-section">
+  <div class="page-heading">Key findings</div>
+  <div class="page-sub">Base case assumptions, 12% blended take rate</div>
+  <div class="findings-list">
+    <div class="finding">
+      <div class="finding-num">42%<span class="finding-unit">of gross revenue</span></div>
+      <div class="finding-text">The US entity is the single largest contributor to consolidated revenue, driven by GMV scale rather than FX benefit, since it carries no currency translation exposure.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-num">~14%<span class="finding-unit">swing</span></div>
+      <div class="finding-text">Consolidated net revenue swings roughly 14 percent between the strong dollar and weak dollar scenarios at a fixed take rate, showing meaningful FX translation risk across the entity base.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-num">$56K<span class="finding-unit">per month</span></div>
+      <div class="finding-text">Each 1 point increase in blended take rate lifts consolidated net revenue by approximately 56 thousand dollars per month under base case FX, illustrating the operating leverage available through pricing.</div>
+    </div>
+    <div class="finding">
+      <div class="finding-num">2%<span class="finding-unit">of gross revenue</span></div>
+      <div class="finding-text">Intercompany eliminations remain a modest but necessary adjustment, underscoring why entity level reconciliation matters even at small dollar magnitudes for audit ready consolidated reporting.</div>
+    </div>
   </div>
 </div>
 
