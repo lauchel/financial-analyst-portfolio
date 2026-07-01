@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amazon Hub Delivery — Variance Bridge Analysis | Rachel Lau</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--navy:#131A22;--navy-2:#232F3E;--navy-3:#37475A;
+--orange:#FF9900;--orange-dark:#E88A00;--orange-light:#FFA41C;
+--cream:#FAF7F4;--smoke:#EAEDED;--smoke-dark:#DDD9D0;
+--text:#0F1111;--text-mid:#565959;--text-light:#8A8D8F;
+--border:#D5D9D9;--white:#FFFFFF;
+--green:#067D62;--green-bg:#E9F6F1;
+--red:#B12704;--red-bg:#FDEDEA;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:var(--cream);color:var(--text);line-height:1.65;font-size:15px}
+
+nav{background:var(--navy);padding:0 3rem;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;border-bottom:3px solid var(--orange)}
+.nav-name{font-size:14px;font-weight:600;letter-spacing:0.04em;color:var(--white)}
+.nav-links{display:flex;gap:1.75rem}
+.nav-links a{font-size:12px;color:var(--smoke);text-decoration:none;letter-spacing:0.06em;transition:color 0.15s}
+.nav-links a:hover{color:var(--orange-light)}
+
+.route-strip{background:var(--navy-2);height:4px;position:relative;overflow:hidden}
+.route-strip::before{content:'';position:absolute;top:50%;left:0;right:0;height:2px;background-image:linear-gradient(90deg,var(--orange) 0 10px,transparent 10px 20px);background-size:20px 2px;transform:translateY(-50%)}
+
+.p-hero{background:var(--navy);padding:4rem 4rem 3rem;position:relative;overflow:hidden}
+.p-hero-inner{max-width:960px;margin:0 auto;display:grid;grid-template-columns:1.3fr 1fr;gap:2rem;align-items:center}
+.p-eyebrow{font-family:'SF Mono',Consolas,monospace;font-size:11px;letter-spacing:0.08em;color:var(--orange-light);margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+.p-eyebrow::before{content:'';width:8px;height:8px;background:var(--orange);border-radius:50%;display:inline-block}
+.p-title{font-size:36px;font-weight:700;line-height:1.25;color:var(--white);letter-spacing:-0.01em;margin-bottom:1.1rem}
+.p-title .accent{color:var(--orange-light)}
+.p-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem}
+.p-tag{border-radius:3px;padding:4px 10px;font-size:11px;font-weight:600;letter-spacing:0.03em;background:var(--navy-3);color:var(--smoke);border:1px solid rgba(255,255,255,0.1)}
+.p-summary{font-size:15px;color:var(--smoke);line-height:1.7;max-width:520px}
+
+.truck-scene{position:relative;height:150px}
+.truck-scene svg{width:100%;height:100%}
+.truck-wheel{animation:spin 1.6s linear infinite;transform-origin:center}
+.truck-unit{animation:drive 3.2s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes drive{0%,100%{transform:translateX(0)}50%{transform:translateX(6px)}}
+@media (prefers-reduced-motion:reduce){.truck-wheel,.truck-unit{animation:none}}
+
+.disclosure{background:var(--smoke);border:1px solid var(--border);border-left:4px solid var(--orange);padding:1rem 1.5rem;margin:1.75rem auto 0;max-width:960px;font-size:13px;color:var(--text-mid);line-height:1.7}
+.disclosure strong{color:var(--text)}
+
+.content{max-width:960px;margin:0 auto;padding:3rem 4rem}
+.stop{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
+.stop-pin{width:26px;height:26px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stop-pin svg{width:14px;height:14px}
+.section-label{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-light);font-weight:600}
+.section-title{font-size:24px;font-weight:700;color:var(--text)}
+.section-title .accent{color:var(--orange-dark)}
+.content p{color:var(--text-mid);margin-bottom:1.1rem;max-width:680px;font-size:14.5px}
+.content section{margin-bottom:3rem;position:relative;padding-left:13px;border-left:2px dashed var(--smoke-dark)}
+.content section:last-child{border-left:2px dashed transparent}
+
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:1.5rem 0}
+.stat-box{background:var(--white);border:1px solid var(--border);border-top:3px solid var(--orange);padding:1.25rem;text-align:center;border-radius:2px}
+.stat-num{font-size:24px;font-weight:700;color:var(--navy-2)}
+.stat-num.pos{color:var(--green)}
+.stat-label{font-size:11px;letter-spacing:0.03em;text-transform:uppercase;color:var(--text-light);margin-top:6px}
+
+.chart-frame{background:var(--white);border:1px solid var(--border);padding:1.25rem;margin:1.5rem 0;position:relative}
+.chart-frame::before{content:'WBR';position:absolute;top:-10px;right:16px;background:var(--orange);color:var(--navy);font-size:10px;font-weight:700;letter-spacing:0.05em;padding:2px 8px;border-radius:2px}
+.chart-frame img{width:100%;display:block}
+.chart-caption{font-size:12px;color:var(--text-light);margin-top:0.75rem;text-align:center}
+
+.bridge-list{list-style:none;margin:1.5rem 0}
+.bridge-list li{display:grid;grid-template-columns:170px 1fr auto;gap:1rem;align-items:center;padding:0.85rem 0;border-bottom:1px solid var(--border);font-size:13px}
+.bridge-list .label{color:var(--text);font-weight:600}
+.bridge-list .bar-bg{background:var(--smoke);height:8px;border-radius:2px;position:relative}
+.bridge-list .bar{height:8px;border-radius:2px;position:absolute;top:0}
+.bridge-list .bar.fav{background:var(--green);right:50%}
+.bridge-list .bar.unfav{background:var(--orange);left:50%}
+.bridge-list .val{font-weight:700;text-align:right;min-width:90px}
+.bridge-list .val.fav{color:var(--green)}
+.bridge-list .val.unfav{color:var(--orange-dark)}
+
+.action-list{margin:1.5rem 0}
+.action-item{display:flex;gap:1rem;padding:1.1rem 0;border-top:1px solid var(--border)}
+.action-item:last-child{border-bottom:1px solid var(--border)}
+.action-box{width:22px;height:22px;border:2px solid var(--navy-2);border-radius:3px;flex-shrink:0;margin-top:2px}
+.action-item p{margin:0;font-size:14px;color:var(--text-mid)}
+
+.code-block{background:var(--navy);color:var(--smoke);padding:1.5rem;border-radius:3px;font-family:'SF Mono',Consolas,monospace;font-size:12.5px;line-height:1.7;overflow-x:auto;margin:1.5rem 0;border-left:4px solid var(--orange)}
+.code-block .cm{color:#7A8794}
+.code-block .kw{color:var(--orange-light)}
+
+.stack-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin:1.5rem 0}
+.stack-item{background:var(--white);padding:1.1rem}
+.stack-item .name{font-size:13.5px;font-weight:700;color:var(--navy-2);margin-bottom:4px}
+.stack-item .desc{font-size:12px;color:var(--text-light)}
+
+.repo-cta{background:var(--navy);padding:1.75rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;border-radius:3px}
+.repo-cta .cta-title{font-size:15px;color:var(--white);font-weight:600;margin-bottom:2px}
+.repo-cta .cta-sub{font-size:12px;color:var(--smoke)}
+.repo-cta a{background:var(--orange);color:var(--navy);text-decoration:none;padding:11px 24px;border-radius:20px;font-size:13px;font-weight:700;white-space:nowrap;transition:background 0.15s}
+.repo-cta a:hover{background:var(--orange-light)}
+
+footer{background:var(--navy-2);padding:1.75rem 4rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+footer p{font-size:12px;color:var(--smoke);letter-spacing:0.03em}
+footer a{font-size:12px;color:var(--orange-light);text-decoration:none}
+
+@media(max-width:768px){
+.p-hero-inner{grid-template-columns:1fr}
+.truck-scene{height:110px}
+.p-hero,.content{padding:2.5rem 1.5rem}
+nav{padding:0 1.5rem}footer{padding:1.5rem 2rem}
+.stat-row{grid-template-columns:1fr}
+.stack-grid{grid-template-columns:1fr}
+.bridge-list li{grid-template-columns:1fr;gap:0.4rem}
+.bridge-list .val{text-align:left}
+.p-title{font-size:27px}
+}
+</style>
+</head>
+<body>
+<nav>
+<div class="nav-name">Rachel Lau &nbsp;|&nbsp; FP&A</div>
+<div class="nav-links">
+<a href="index.html#projects">← All Projects</a>
+<a href="https://github.com/lauchel/financial-analyst-portfolio" target="_blank">GitHub</a>
+</div>
+</nav>
+<div class="route-strip"></div>
+
+<div class="p-hero">
+<div class="p-hero-inner">
+<div>
+<div class="p-eyebrow">TRACKING #HD&#8209;2026&#8209;000108</div>
+<h1 class="p-title">Amazon Hub Delivery<br>Variance <span class="accent">Bridge</span> Analysis</h1>
+<div class="p-tags">
+<span class="p-tag">SQL · Variance Bridge</span>
+<span class="p-tag">Python · Matplotlib</span>
+<span class="p-tag">Synthetic Data</span>
+</div>
+<p class="p-summary">A weekly plan-vs-actual cost tracker for a 40-hub delivery network, decomposed into volume and rate effects using the standard FP&A bridge method — mirroring the weekly business review (WBR) workflow used by Amazon's Hub Delivery Finance team.</p>
+</div>
+<div class="truck-scene">
+<svg viewBox="0 0 260 150" xmlns="http://www.w3.org/2000/svg">
+<line x1="0" y1="118" x2="260" y2="118" stroke="#37475A" stroke-width="2" stroke-dasharray="8 8"/>
+<circle cx="30" cy="118" r="3" fill="#FF9900"/>
+<circle cx="230" cy="118" r="3" fill="#FF9900"/>
+<g class="truck-unit">
+<rect x="40" y="55" width="90" height="55" rx="3" fill="#FAF7F4"/>
+<rect x="40" y="55" width="90" height="10" fill="#FF9900"/>
+<path d="M46 92 h30 M46 100 h20" stroke="#232F3E" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+<rect x="130" y="70" width="42" height="40" rx="3" fill="#37475A"/>
+<path d="M138 70 L150 82 V110 H130 V82 Z" fill="#232F3E"/>
+<rect x="150" y="82" width="20" height="16" rx="2" fill="#8DB8E8"/>
+<circle class="truck-wheel" cx="62" cy="112" r="12" fill="#232F3E"/>
+<circle cx="62" cy="112" r="4" fill="#8A8D8F"/>
+<circle class="truck-wheel" cx="150" cy="112" r="12" fill="#232F3E"/>
+<circle cx="150" cy="112" r="4" fill="#8A8D8F"/>
+</g>
+</svg>
+</div>
+</div>
+</div>
+
+<div style="padding:0 4rem">
+<div class="disclosure">
+<strong>Data disclosure:</strong> Amazon does not publish Hub Delivery financials. This dataset is synthetic — generated to be realistic based on public information (the &gt;100% YoY network growth cited in Amazon's own job postings, typical last-mile per-package economics, and standard FP&A plan structures). Every assumption is documented in the data generation script. This is a modeling exercise, not real Amazon data.
+</div>
+</div>
+
+<div class="content">
+
+<section>
+<div class="stop"><div class="stop-pin"><svg viewBox="0 0 24 24" fill="none" stroke="#FF9900" stroke-width="2.5"><path d="M12 2 L4 7 V17 L12 22 L20 17 V7 Z"/><path d="M4 7 L12 12 L20 7 M12 12 V22"/></svg></div><div class="section-label">Stop 01 · The problem</div></div>
+<div class="section-title">Why did actual cost <span class="accent">diverge</span> from plan?</div>
+<p>Hub Delivery Finance tracks weekly plan-vs-actual performance across a fast-growing network of small-business delivery partners. When actual cost misses plan, the first question is always the same: was it driven by <strong>volume</strong> (more or fewer packages than expected) or <strong>rate</strong> (paying more or less per package than budgeted)? This project builds that decomposition end to end — from raw weekly data, through SQL, to a WBR-ready chart and a written action plan.</p>
+
+<div class="stat-row">
+<div class="stat-box"><div class="stat-num">$2.27M</div><div class="stat-label">H1 Plan Cost</div></div>
+<div class="stat-box"><div class="stat-num pos">−13.8%</div><div class="stat-label">Total Variance</div></div>
+<div class="stat-box"><div class="stat-num">40</div><div class="stat-label">Hubs Tracked</div></div>
+</div>
+</section>
+
+<section>
+<div class="stop"><div class="stop-pin"><svg viewBox="0 0 24 24" fill="none" stroke="#FF9900" stroke-width="2.5"><path d="M3 12 h13 M13 8 h5 l3 4 v4 h-8 z"/><circle cx="7" cy="17" r="2"/><circle cx="17.5" cy="17" r="2"/></svg></div><div class="section-label">Stop 02 · Weekly tracking</div></div>
+<div class="section-title">Plan vs. <span class="accent">actual</span> cost trend</div>
+<p>26 weeks of network-level cost, plotted against plan, with favorable/unfavorable shading — the same view used to open a weekly business review.</p>
+<div class="chart-frame">
+<img src="output/variance_bridge.png" alt="Hub Delivery plan vs actual cost trend and variance bridge waterfall chart">
+<div class="chart-caption">Weekly cost trend (top) and cumulative H1 variance bridge (bottom), generated in Python from live SQL query output</div>
+</div>
+</section>
+
+<section>
+<div class="stop"><div class="stop-pin"><svg viewBox="0 0 24 24" fill="none" stroke="#FF9900" stroke-width="2.5"><path d="M3 3 v18 h18 M7 15 l4-4 3 3 5-6"/></svg></div><div class="section-label">Stop 03 · The decomposition</div></div>
+<div class="section-title">Volume effect vs. <span class="accent">rate</span> effect</div>
+<p>The $313K favorable variance splits almost entirely into a volume shortfall, partially offset by a per-package rate that ran above plan — a signal worth flagging to Ops even though the net variance looks favorable.</p>
+<ul class="bridge-list">
+<li>
+<span class="label">Volume effect</span>
+<span class="bar-bg"><span class="bar fav" style="width:38%"></span></span>
+<span class="val fav">−$345,381</span>
+</li>
+<li>
+<span class="label">Rate effect</span>
+<span class="bar-bg"><span class="bar unfav" style="width:6%"></span></span>
+<span class="val unfav">+$31,833</span>
+</li>
+<li>
+<span class="label">Interaction effect</span>
+<span class="bar-bg"><span class="bar unfav" style="width:0.5%"></span></span>
+<span class="val unfav">+$355</span>
+</li>
+</ul>
+</section>
+
+<section>
+<div class="stop"><div class="stop-pin"><svg viewBox="0 0 24 24" fill="none" stroke="#FF9900" stroke-width="2.5"><path d="M4 4 h16 v4 H4 z M6 8 v12 h12 V8 M10 12 h4"/></svg></div><div class="section-label">Stop 04 · SQL</div></div>
+<div class="section-title">Bridge calculation, <span class="accent">in query</span></div>
+<p>The full decomposition runs as a single aggregation query against the weekly plan/actual table — no spreadsheet manipulation required.</p>
+<div class="code-block">
+<span class="cm">-- Volume Effect = (Actual Vol − Plan Vol) × Plan Rate</span><br>
+<span class="cm">-- Rate Effect   = (Actual Rate − Plan Rate) × Plan Vol</span><br>
+<span class="kw">SELECT</span> week_num,<br>
+&nbsp;&nbsp;<span class="kw">SUM</span>((actual_packages - plan_packages) * plan_rate_per_pkg) <span class="kw">AS</span> volume_effect,<br>
+&nbsp;&nbsp;<span class="kw">SUM</span>((actual_rate_per_pkg - plan_rate_per_pkg) * plan_packages) <span class="kw">AS</span> rate_effect,<br>
+&nbsp;&nbsp;<span class="kw">SUM</span>(actual_cost) - <span class="kw">SUM</span>(plan_cost) <span class="kw">AS</span> total_variance<br>
+<span class="kw">FROM</span> hub_delivery_weekly<br>
+<span class="kw">GROUP BY</span> week_num<br>
+<span class="kw">ORDER BY</span> week_num;
+</div>
+<p>Six queries in total cover the plan/actual trend, the bridge, worst-variance hubs, churned-hub impact, regional rate drift, and new-hub ramp performance against plan.</p>
+</section>
+
+<section>
+<div class="stop"><div class="stop-pin"><svg viewBox="0 0 24 24" fill="none" stroke="#FF9900" stroke-width="2.5"><path d="M5 13 l4 4 L19 7"/></svg></div><div class="section-label">Stop 05 · Output</div></div>
+<div class="section-title">Action plan, <span class="accent">written for the business</span></div>
+<div class="action-list">
+<div class="action-item">
+<div class="action-box"></div>
+<p>Escalate to Ops for a per-hub rate card review in the regions with the steepest rate drift — five hubs in the Southwest and Midwest account for a disproportionate share of the unfavorable rate variance in the trailing 4 weeks.</p>
+</div>
+<div class="action-item">
+<div class="action-box"></div>
+<p>Validate whether the volume shortfall reflects softer demand or a forecasting gap before lowering next cycle's plan targets — a favorable cost variance driven by under-delivery isn't necessarily good news.</p>
+</div>
+<div class="action-item">
+<div class="action-box"></div>
+<p>Deep-dive the top 5 variance hubs individually to determine whether the driver is local labor market conditions, onboarding ramp delays, or a one-off operational disruption.</p>
+</div>
+</div>
+</section>
+
+<section style="border-left:2px dashed transparent">
+<div class="stop"><div class="stop-pin"><svg viewBox="0 0 24 24" fill="none" stroke="#FF9900" stroke-width="2.5"><path d="M12 2 L4 7 V17 L12 22 L20 17 V7 Z"/><path d="M4 7 L12 12 L20 7 M12 12 V22"/></svg></div><div class="section-label">Final stop · Build</div></div>
+<div class="section-title">Stack &amp; <span class="accent">methodology</span></div>
+<div class="stack-grid">
+<div class="stack-item"><div class="name">Data generation</div><div class="desc">Python / NumPy — 40 hubs, 5 regions, 26 weeks, documented assumptions incl. onboarding ramps &amp; churn</div></div>
+<div class="stack-item"><div class="name">Database</div><div class="desc">SQLite schema, 6 finance queries incl. plan/actual, bridge, ramp &amp; churn analysis</div></div>
+<div class="stack-item"><div class="name">Analysis &amp; output</div><div class="desc">Pandas + Matplotlib — WBR-style chart, written variance summary, action plan</div></div>
+</div>
+
+<div class="repo-cta">
+<div>
+<div class="cta-title">Full code, data & queries</div>
+<div class="cta-sub">SQL schema · Python pipeline · synthetic dataset · README with assumptions</div>
+</div>
+<a href="https://github.com/lauchel/financial-analyst-portfolio" target="_blank">View on GitHub</a>
+</div>
+</section>
+
+</div>
+
+<footer>
+<p>Rachel Lau &nbsp;·&nbsp; FP&A Portfolio &nbsp;·&nbsp; 2025</p>
+<a href="https://github.com/lauchel/financial-analyst-portfolio" target="_blank">github.com/lauchel/financial-analyst-portfolio</a>
+</footer>
+</body>
+</html>
