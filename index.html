@@ -52,6 +52,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 3rem
 .tag-pink{background:var(--pink-light);color:var(--pink-dark)}
 .tag-grey{background:var(--beige-dark,#E8DDD4);color:var(--text-mid)}
 .tag-real{background:#EAF5EE;color:#1A6B3A}
+.tag-synth{background:#EDEEF7;color:#3A3F8C}
 .proj-title{font-size:22px;font-weight:normal;margin-bottom:0.5rem;color:var(--text)}
 .proj-desc{font-size:13px;color:var(--text-mid);line-height:1.65;max-width:580px;font-family:-apple-system,sans-serif}
 .proj-source{font-size:12px;color:var(--text-light);font-family:-apple-system,sans-serif;margin-top:1rem;letter-spacing:0.05em}
@@ -103,7 +104,7 @@ nav{padding:0 1.5rem}footer{padding:1.5rem 2rem}
 <p>A showcase of FP&A skills — from three-statement modeling and scenario analysis to SQL variance tracking on real SEC filings, built to professional standards.</p>
 <div class="hero-stats">
 <div class="h-stat"><div class="h-stat-num">7</div><div class="h-stat-label">Live web apps</div></div>
-<div class="h-stat"><div class="h-stat-num">16</div><div class="h-stat-label">SQL queries</div></div>
+<div class="h-stat"><div class="h-stat-num">22</div><div class="h-stat-label">SQL queries</div></div>
 <div class="h-stat"><div class="h-stat-num">5</div><div class="h-stat-label">Real company datasets</div></div>
 <div class="h-stat"><div class="h-stat-num">1</div><div class="h-stat-label">Business memo</div></div>
 </div>
@@ -214,6 +215,21 @@ nav{padding:0 1.5rem}footer{padding:1.5rem 2rem}
       <div class="proj-title">Global Marketplace — Multi-Entity Consolidation Model</div>
       <div class="proj-desc">Multi-entity, multi-currency P&amp;L roll up for a rare and used book marketplace operating across four countries. Includes live FX scenario toggles (strong/base/weak dollar), a blended take rate control, and a full intercompany elimination and reconciliation schedule tying entity-level books to the consolidated USD statement.</div>
       <div class="proj-source">Illustrative model built to reflect global marketplace consolidation complexity</div>
+    </div>
+    <div class="proj-arrow"><svg viewBox="0 0 14 14" fill="none" stroke-width="1.5"><path d="M2 12L12 2M12 2H6M12 2v6"/></svg></div>
+  </a>
+
+  <a href="https://github.com/lauchel/hub-delivery-variance" target="_blank" class="project-item">
+    <div>
+      <div class="proj-meta">
+        <span class="proj-num">08</span>
+        <span class="proj-tag tag-pink">SQL · Variance Bridge</span>
+        <span class="proj-tag tag-synth">Synthetic data</span>
+        <span class="proj-tag tag-grey">Python · Matplotlib</span>
+      </div>
+      <div class="proj-title">Amazon Hub Delivery — Variance Bridge Analysis</div>
+      <div class="proj-desc">Weekly plan-vs-actual cost tracking across a 40-hub delivery network, decomposed into volume and rate effects using the standard FP&A bridge method. Includes a SQL schema and query set, a Python pipeline generating WBR-style charts, and a written variance summary with recommended action plan.</div>
+      <div class="proj-source">Synthetic dataset modeled on Amazon Hub Delivery job posting figures</div>
     </div>
     <div class="proj-arrow"><svg viewBox="0 0 14 14" fill="none" stroke-width="1.5"><path d="M2 12L12 2M12 2H6M12 2v6"/></svg></div>
   </a>
