@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Center Capital Project Investment Model — Rachel Lau</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--cream:#FAF7F4;--beige:#F2EBE3;--beige-dark:#E8DDD4;
+--pink:#C9768A;--pink-light:#F0D6DC;--pink-dark:#9E4F63;
+--text:#2A1F1A;--text-mid:#6B5550;--text-light:#A08880;
+--border:#E0D5CE;--white:#FFFFFF;--green:#1A6B3A;--green-bg:#EAF5EE;
+}
+body{font-family:'Georgia',serif;background:var(--cream);color:var(--text);line-height:1.7;font-size:15px}
+nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 3rem;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100}
+.nav-name{font-size:15px;font-weight:normal;letter-spacing:0.12em;text-transform:uppercase;color:var(--text);font-family:-apple-system,sans-serif}
+.nav-links{display:flex;gap:2rem}
+.nav-links a{font-size:12px;color:var(--text-mid);text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;font-family:-apple-system,sans-serif;transition:color 0.2s}
+.nav-links a:hover{color:var(--pink)}
+
+.p-hero{background:var(--pink);padding:4rem 4rem 3.5rem}
+.p-hero-inner{max-width:900px;margin:0 auto}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.75);text-decoration:none;font-family:-apple-system,sans-serif;margin-bottom:2rem}
+.back-link:hover{color:var(--white)}
+.p-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem}
+.p-tag{border-radius:2px;padding:3px 10px;font-size:11px;font-family:-apple-system,sans-serif;font-weight:500;letter-spacing:0.05em;background:rgba(255,255,255,0.2);color:var(--white)}
+.p-hero h1{font-size:38px;font-weight:normal;color:var(--white);line-height:1.2;max-width:640px;margin-bottom:1rem}
+.p-hero .p-sub{font-size:16px;color:rgba(255,255,255,0.85);max-width:640px}
+
+.content{max-width:900px;margin:0 auto;padding:4rem}
+.section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-light);font-family:-apple-system,sans-serif;margin-bottom:0.75rem}
+.section-title{font-size:26px;font-weight:normal;margin-bottom:1.5rem}
+.section-title em{font-style:italic;color:var(--pink)}
+.block{margin-bottom:4rem}
+.lede{font-size:16px;color:var(--text-mid);max-width:680px;margin-bottom:1.5rem}
+
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;margin:2rem 0}
+.stat{background:var(--white);border:1px solid var(--border);border-radius:4px;padding:1.5rem}
+.stat-num{font-size:26px;color:var(--pink);font-family:-apple-system,sans-serif}
+.stat-label{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-light);font-family:-apple-system,sans-serif;margin-top:4px}
+
+table{width:100%;border-collapse:collapse;background:var(--white);border:1px solid var(--border);font-family:-apple-system,sans-serif;font-size:13px}
+th,td{padding:10px 14px;text-align:right;border-bottom:1px solid var(--border)}
+th:first-child,td:first-child{text-align:left}
+th{background:var(--beige);color:var(--text-mid);font-weight:600;font-size:11px;letter-spacing:0.05em;text-transform:uppercase}
+tr:last-child td{border-bottom:none}
+.highlight-row td{background:var(--pink-light);font-weight:600;color:var(--pink-dark)}
+
+.source-note{font-size:12px;color:var(--text-light);font-family:-apple-system,sans-serif;margin-top:0.75rem;padding-left:12px;border-left:2px solid var(--pink-light)}
+.flag-note{font-size:12px;color:#8a4b1f;font-family:-apple-system,sans-serif;margin-top:0.75rem;padding:10px 14px;background:#FBF0E4;border-left:2px solid #C97A3B;border-radius:2px}
+
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:160px;margin:1.5rem 0;background:var(--white);border:1px solid var(--border);border-radius:4px;padding:1.5rem}
+.bar{flex:1;background:var(--pink);border-radius:2px 2px 0 0;position:relative;min-height:2px}
+.bar-label{font-family:-apple-system,sans-serif;font-size:9px;color:var(--text-light);text-align:center;margin-top:6px}
+
+.risk-list{list-style:none;font-family:-apple-system,sans-serif;font-size:14px;color:var(--text-mid)}
+.risk-list li{padding:12px 0;border-top:1px solid var(--border);display:flex;gap:12px}
+.risk-list li:first-child{border-top:none}
+.risk-dot{width:6px;height:6px;border-radius:50%;background:var(--pink);flex-shrink:0;margin-top:8px}
+
+.cta{background:var(--pink-dark);border-radius:6px;padding:2.5rem;display:flex;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap}
+.cta p{color:rgba(255,255,255,0.85);font-size:15px;max-width:420px}
+.cta a{background:var(--white);color:var(--pink-dark);padding:12px 24px;border-radius:4px;text-decoration:none;font-family:-apple-system,sans-serif;font-size:13px;font-weight:600;letter-spacing:0.03em;white-space:nowrap}
+
+footer{background:var(--white);border-top:1px solid var(--border);padding:2rem 4rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+footer p{font-size:12px;color:var(--text-light);font-family:-apple-system,sans-serif;letter-spacing:0.05em}
+footer a{font-size:12px;color:var(--pink);text-decoration:none;font-family:-apple-system,sans-serif;letter-spacing:0.05em}
+
+@media(max-width:768px){
+.p-hero,.content{padding:2.5rem 1.5rem}
+.stat-row{grid-template-columns:1fr 1fr}
+nav{padding:0 1.5rem}
+footer{padding:1.5rem 2rem}
+.cta{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+<nav>
+<div class="nav-name">Rachel Lau &nbsp;/&nbsp; FP&A</div>
+<div class="nav-links">
+<a href="index.html#projects">Work</a>
+<a href="index.html#skills">Skills</a>
+<a href="https://github.com/lauchel/financial-analyst-portfolio" target="_blank">GitHub</a>
+</div>
+</nav>
+
+<div class="p-hero">
+<div class="p-hero-inner">
+<a href="index.html#projects" class="back-link">&larr; All projects</a>
+<div class="p-tags">
+<span class="p-tag">Capital Budgeting</span>
+<span class="p-tag">Real data</span>
+<span class="p-tag">Debt Capacity &amp; DSCR</span>
+<span class="p-tag">Sensitivity Analysis</span>
+</div>
+<h1>Data Center Capital Project Investment Model</h1>
+<p class="p-sub">A capital budgeting case study for a 50MW data center development, built on real development cost and yield assumptions from Digital Realty Trust's FY2025 disclosures.</p>
+</div>
+</div>
+
+<div class="content">
+
+<div class="block">
+<div class="section-label">Overview</div>
+<div class="section-title">Underwriting a <em>50MW</em> development</div>
+<p class="lede">Digital infrastructure investors underwrite new data center capacity the same way any capital intensive developer underwrites a project: phased construction spend, a lease up ramp to stabilized income, and a return profile that has to clear the cost of capital before a dollar gets committed. This model rebuilds that process end to end, using Digital Realty's own disclosed development economics as the input set rather than invented numbers.</p>
+<div class="stat-row">
+<div class="stat"><div class="stat-num">$650M</div><div class="stat-label">Total development CapEx</div></div>
+<div class="stat"><div class="stat-num">18.5%</div><div class="stat-label">Unlevered IRR</div></div>
+<div class="stat"><div class="stat-num">$379M</div><div class="stat-label">Unlevered NPV</div></div>
+<div class="stat"><div class="stat-num">1.57x</div><div class="stat-label">Minimum DSCR</div></div>
+</div>
+</div>
+
+<div class="block">
+<div class="section-label">Assumptions</div>
+<div class="section-title">Sourced from <em>real disclosures</em></div>
+<p class="lede">Every hardcoded input is either pulled directly from Digital Realty's Q4 2025 results or flagged as a general market assumption that still needs a live quote before real underwriting.</p>
+<table>
+<thead><tr><th>Assumption</th><th>Value</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>Project size</td><td>50 MW</td><td>Illustrative, sized to DLR's disclosed pipeline scale</td></tr>
+<tr><td>Development cost per MW</td><td>$13.0M</td><td>DLR Q4 2025: $10.0B pipeline value / 769 MW underway</td></tr>
+<tr><td>Expected stabilized yield on cost</td><td>11.9%</td><td>DLR Q4 2025 results</td></tr>
+<tr><td>Pre-lease at delivery</td><td>75%</td><td>DLR Q4 2025 results, Q4 deliveries pre-leased rate</td></tr>
+<tr><td>Target leverage</td><td>5.5x net debt/EBITDA</td><td>DLR Q4 2025 results, long-term target (actual 4.9x)</td></tr>
+<tr><td>Cost of debt</td><td>5.5%</td><td>General market assumption, not company sourced</td></tr>
+<tr><td>WACC / discount rate</td><td>8.5%</td><td>General market assumption, not company sourced</td></tr>
+<tr><td>Exit cap rate</td><td>6.5%</td><td>General market assumption, not company sourced</td></tr>
+</tbody>
+</table>
+<div class="flag-note">Cost of debt, WACC, and exit cap rate are general market assumptions layered onto real company data, not Digital Realty figures. Any real underwriting would confirm these against live lender and market pricing first.</div>
+</div>
+
+<div class="block">
+<div class="section-label">Construction phasing</div>
+<div class="section-title">22 month <em>capex build</em></div>
+<p class="lede">Spend follows an S-curve rather than a straight line, mirroring how a real construction draw schedule ramps up through the middle of the build and tapers as the project nears delivery.</p>
+<div class="bar-chart">
+<div class="bar" style="height:18%"><div class="bar-label">M2</div></div>
+<div class="bar" style="height:32%"><div class="bar-label">M4</div></div>
+<div class="bar" style="height:47%"><div class="bar-label">M6</div></div>
+<div class="bar" style="height:63%"><div class="bar-label">M8</div></div>
+<div class="bar" style="height:81%"><div class="bar-label">M10</div></div>
+<div class="bar" style="height:100%"><div class="bar-label">M12</div></div>
+<div class="bar" style="height:96%"><div class="bar-label">M13</div></div>
+<div class="bar" style="height:81%"><div class="bar-label">M15</div></div>
+<div class="bar" style="height:63%"><div class="bar-label">M17</div></div>
+<div class="bar" style="height:47%"><div class="bar-label">M19</div></div>
+<div class="bar" style="height:32%"><div class="bar-label">M21</div></div>
+<div class="bar" style="height:18%"><div class="bar-label">M22</div></div>
+</div>
+<div class="source-note">Monthly spend as a share of total $650M CapEx, peaking near month 12 and tapering to delivery at month 22.</div>
+</div>
+
+<div class="block">
+<div class="section-label">Cash flow &amp; returns</div>
+<div class="section-title">Lease up ramp to <em>stabilization</em></div>
+<p class="lede">NOI ramps from zero at delivery to full stabilized yield over the lease up period, and debt service is stress tested against that ramp rather than assumed flat.</p>
+<table>
+<thead><tr><th>Year</th><th>NOI</th><th>Interest expense</th><th>DSCR</th></tr></thead>
+<tbody>
+<tr><td>Yr 1</td><td>$30.9M</td><td>($19.7M)</td><td>1.57x</td></tr>
+<tr><td>Yr 2</td><td>$65.7M</td><td>($19.7M)</td><td>3.34x</td></tr>
+<tr><td>Yr 3</td><td>$77.4M</td><td>($19.7M)</td><td>3.93x</td></tr>
+<tr><td>Yr 4</td><td>$77.4M</td><td>($19.7M)</td><td>3.93x</td></tr>
+<tr><td>Yr 5</td><td>$77.4M</td><td>($19.7M)</td><td>3.93x</td></tr>
+<tr class="highlight-row"><td>Yr 6 (exit)</td><td>$77.4M + sale</td><td>($19.7M)</td><td>&mdash;</td></tr>
+</tbody>
+</table>
+<div class="source-note">Debt sized at 55% loan to cost against the $650M project, consistent with DLR's disclosed target leverage. DSCR stays above 1.5x through the ramp, the tightest point in the deal.</div>
+</div>
+
+<div class="block">
+<div class="section-label">Sensitivity</div>
+<div class="section-title">Where the <em>returns move</em></div>
+<p class="lede">Two variables do most of the work on this deal: how fast the building leases up, and where cap rates sit at exit.</p>
+<table>
+<thead><tr><th>Stabilized yield on cost</th><th>Unlevered IRR</th></tr></thead>
+<tbody>
+<tr><td>9.9%</td><td>14.3%</td></tr>
+<tr><td>10.9%</td><td>16.5%</td></tr>
+<tr class="highlight-row"><td>11.9% (base case)</td><td>18.5%</td></tr>
+<tr><td>12.9%</td><td>20.4%</td></tr>
+<tr><td>13.9%</td><td>22.2%</td></tr>
+</tbody>
+</table>
+<br>
+<table>
+<thead><tr><th>Exit cap rate</th><th>Unlevered IRR</th></tr></thead>
+<tbody>
+<tr><td>5.5%</td><td>21.1%</td></tr>
+<tr><td>6.0%</td><td>19.7%</td></tr>
+<tr class="highlight-row"><td>6.5% (base case)</td><td>18.5%</td></tr>
+<tr><td>7.0%</td><td>17.4%</td></tr>
+<tr><td>7.5%</td><td>16.3%</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="block">
+<div class="section-label">Takeaways</div>
+<div class="section-title">Recommendation &amp; <em>key risks</em></div>
+<ul class="risk-list">
+<li><span class="risk-dot"></span>Base case unlevered IRR clears an 8.5% WACC with meaningful room, supporting moving to full underwriting subject to a real lender term sheet.</li>
+<li><span class="risk-dot"></span>DSCR holds above 1.5x through the lease up ramp at a 55% loan to cost, giving headroom against a slower start.</li>
+<li><span class="risk-dot"></span>Lease up pace is the single biggest lever on returns. A delayed ramp to stabilization compresses IRR faster than almost any other input.</li>
+<li><span class="risk-dot"></span>Exit cap rate expansion erodes terminal value directly. Every 50 basis points of cap rate expansion costs a little over a point of unlevered IRR in this structure.</li>
+</ul>
+</div>
+
+<div class="cta">
+<p>The full workbook includes every formula, the S-curve build schedule, and both sensitivity tables live and editable.</p>
+<a href="Data_Center_Capital_Project_Model.xlsx" download>Download the model</a>
+</div>
+
+</div>
+
+<footer>
+<p>Rachel Lau &nbsp;·&nbsp; FP&A Portfolio &nbsp;·&nbsp; 2025</p>
+<a href="https://github.com/lauchel/financial-analyst-portfolio" target="_blank">github.com/lauchel/financial-analyst-portfolio</a>
+</footer>
+</body>
+</html>
